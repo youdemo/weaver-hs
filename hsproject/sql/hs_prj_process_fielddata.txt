@@ -1,0 +1,6 @@
+CREATE TABLE hs_prj_process_fielddata
+(
+id int,
+prjid int,
+processid int
+)

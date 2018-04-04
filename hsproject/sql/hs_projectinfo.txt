@@ -1,0 +1,18 @@
+CREATE TABLE hs_projectinfo
+(
+id int,
+procode varchar(50),
+name varchar(500),
+prjtype int,
+manager varchar(100),
+members varchar(1000),
+begindate varchar(30),
+enddate varchar(30),
+actualbegindate varchar(30),
+actualenddate varchar(30),
+status int,
+sharedepartment varchar(500),
+sharelevelstart int,
+sharelevelend int,
+attach varchar(500)
+)

@@ -1,0 +1,18 @@
+CREATE TABLE hs_prj_process
+(
+id int,
+prjid int,
+processname varchar(500),
+prjtype int,
+fzrid varchar(500),
+processtype int,
+begindate varchar(30),
+enddate varchar(30),
+actualbegindate varchar(30),
+actualenddate varchar(30),
+fixedcost decimal(12,2),
+sharedepartment varchar(500),
+processattach varchar(500),
+conent varchar(4000)
+)
+

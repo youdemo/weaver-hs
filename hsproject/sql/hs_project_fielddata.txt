@@ -1,0 +1,5 @@
+CREATE TABLE hs_project_fielddata
+(
+id int,
+prjid int
+)
