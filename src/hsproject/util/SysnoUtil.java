@@ -5,9 +5,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ibm.db2.jcc.am.l;
-import com.ibm.db2.jcc.sqlj.n;
-
 import weaver.conn.RecordSet;
 import weaver.general.Util;
 

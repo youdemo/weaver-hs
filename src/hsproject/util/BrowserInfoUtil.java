@@ -4,7 +4,6 @@ package hsproject.util;
 import hsproject.dao.ProjectInfoDao;
 import weaver.conn.RecordSet;
 import weaver.docs.docs.DocComInfo;
-import weaver.general.BaseBean;
 import weaver.general.Util;
 import weaver.hrm.company.DepartmentComInfo;
 import weaver.hrm.company.SubCompanyComInfo;
@@ -12,7 +11,7 @@ import weaver.hrm.resource.ResourceComInfo;
 
 public class BrowserInfoUtil {
 	public String getBrowserFieldValue(String buttontype,String value) throws Exception{
-		BaseBean log = new BaseBean();
+		//BaseBean log = new BaseBean();
 		String result="";
 		if("0".equals(buttontype)||"6".equals(buttontype)){
 			result="<span id=\"hsprj_span\" style=\"display:block;word-break:break-all;\">"+new ResourceComInfo().getMulResourcename1(value)+"</span>";

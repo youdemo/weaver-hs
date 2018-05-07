@@ -61,4 +61,19 @@ public class ProjectUtil {
 		sqlWhere.append(" )");
 		return sqlWhere.toString();
 	}
+	
+	public String checkisDepartPerson(String userid,String prjid){
+		RecordSet rs = new RecordSet();
+		int count =0 ;
+		String sql = "select count(1) as count from hs_projectinfo  a,uf_prj_departperson b  where a.belongdepart=b.department and a.id="+prjid+" and b.person="+userid;
+		rs.executeSql(sql);
+		if(rs.next()){
+			count = rs.getInt("count");
+		}
+		if(count>0){
+			return "1";
+		}else{
+			return "0";
+		}
+	}
 }

@@ -89,7 +89,7 @@ weaver.general.AccountType.langId.set(lg);
 		<%@ include file="/systeminfo/RightClickMenu_wev8.jsp" %>
 		<FORM id=report name=report action="/hsproject/project/aciton/submit-process-info.jsp" method=post enctype="multipart/form-data">
 			<input type="hidden" name="requestid" value="">
-			<input type="hidden" name="submitType" id="submitType"  value="add">
+			<input type="hidden" name="submitType_mt" id="submitType_mt"  value="add">
 			<input type="hidden" name="processtype" id="processtype" value="<%=processtype%>">
 			<input type="hidden" name="prjtype" id="prjtype" value="<%=prjtype%>">
 			<input type="hidden" name="prjid" id="prjid" value="<%=prjid%>">

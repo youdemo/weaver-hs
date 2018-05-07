@@ -127,4 +127,37 @@ public class ProcessFieldDao {
 		}
 		return list;
 	}
+	
+	public ProcessFieldBean getProcessFieldBean(String id){
+		RecordSet rs = new RecordSet();
+		ProcessFieldBean pfb = new ProcessFieldBean();
+		if("".equals(id)){
+			return pfb;
+		}
+		String sql = "select * from uf_prj_porcessfield where id="+id;
+		rs.executeSql(sql);
+		if(rs.next()) {
+			
+			pfb.setId(Util.null2String(rs.getString("id")));
+			pfb.setProjecttype(Util.null2String(rs.getString("projecttype")));
+			pfb.setProcesstype(Util.null2String(rs.getString("processtype")));
+			pfb.setDescription(Util.null2String(rs.getString("description")));
+			pfb.setFieldname(Util.null2String(rs.getString("fieldname")));
+			pfb.setShowname(Util.null2String(rs.getString("showname")));
+			pfb.setFieldtype(Util.null2String(rs.getString("fieldtype")));
+			pfb.setTexttype(Util.null2String(rs.getString("texttype")));
+			pfb.setButtontype(Util.null2String(rs.getString("buttontype")));
+			pfb.setTextlength(Util.null2String(rs.getString("textlength")));
+			pfb.setFloatdigit(Util.null2String(rs.getString("floatdigit")));
+			pfb.setSelectbutton(Util.null2String(rs.getString("selectbutton")));
+			pfb.setGroupinfo(Util.null2String(rs.getString("groupinfo")));
+			pfb.setIsused(Util.null2String(rs.getString("isused")));
+			pfb.setIsmust(Util.null2String(rs.getString("ismust")));
+			pfb.setDsporder(Util.null2String(rs.getString("dsporder")));
+			pfb.setIscommon(Util.null2String(rs.getString("iscommon")));
+			pfb.setIsedit(Util.null2String(rs.getString("isedit")));
+			pfb.setIsreadonly(Util.null2String(rs.getString("isreadonly")));
+		}
+		return pfb;
+	}
 }

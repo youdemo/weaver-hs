@@ -2,7 +2,6 @@ package hsproject.util;
 
 import hsproject.bean.ProcessFieldBean;
 import hsproject.bean.ProjectFieldBean;
-import weaver.general.BaseBean;
 import weaver.general.Util;
 
 public class EditTransMethod {
@@ -32,7 +31,7 @@ public class EditTransMethod {
 	}
 
 	public String getTransValue(String fieldname,String fieldtype,String texttype,String buttontype,String selectbutton,String textlength,String floatdigit,String isCommon,String isMust,String isReadOnly,String isEdit,String value) throws Exception{
-		BaseBean log = new BaseBean();
+		//BaseBean log = new BaseBean();
 		TransUtil eu = new TransUtil();
 		String result ="";
 		if("1".equals(isReadOnly)&&"".equals(value)){

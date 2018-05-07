@@ -1,7 +1,6 @@
 package hsproject.dao;
 
 import hsproject.bean.ProcessCommonFieldBean;
-import hsproject.bean.ProjectCommonFieldBean;
 
 import java.util.ArrayList;
 import java.util.List;

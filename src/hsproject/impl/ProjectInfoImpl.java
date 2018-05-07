@@ -1,11 +1,17 @@
 package hsproject.impl;
 
+import hsproject.dao.PrjLogDao;
 import hsproject.util.InsertUtil;
 import hsproject.util.SysnoUtil;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
+import com.dc.engine.core.f;
+import com.ibm.db2.jcc.am.t;
+
+import weaver.conn.ConnStatement;
 import weaver.conn.RecordSet;
 import weaver.general.Util;
 
@@ -17,11 +23,12 @@ public class ProjectInfoImpl {
 		 * @param prjtype
 		 * @return
 		 */
-		public String  addPorjectInfo(Map<String, String> pidComMap,Map<String, String> pidDefMap,String prjtype){
+		public String  addPorjectInfo(Map<String, String> pidComMap,Map<String, String> pidDefMap,String prjtype,String userid){
 			RecordSet rs = new RecordSet();
 			String prjid="";
 			String sql="";
 			SysnoUtil su = new SysnoUtil();
+			PrjLogDao pld = new PrjLogDao();
 			String procode=pidComMap.get("procode");
 			String belongdepart = pidComMap.get("belongdepart");
 			String belongCompany = "";
@@ -39,19 +46,29 @@ public class ProjectInfoImpl {
 			pidComMap.put("status", getPrjStatus(prjtype));
 			InsertUtil iu = new InsertUtil();
 			iu.insert(pidComMap, "hs_projectinfo");
-			
-			sql="select id from hs_projectinfo where procode='"+procode+"'";
-			rs.executeSql(sql);
-			if(rs.next()){
-				prjid = Util.null2String(rs.getString("id"));
-			}
-			if(!"".equals(prjid) && pidDefMap.size()>0){
+			ConnStatement cs = new ConnStatement();
+			sql="select max(id) as id from hs_projectinfo where procode=?";
+			 try {
+					cs.setStatementSql(sql);
+					cs.setString(1,procode);						
+					cs.executeQuery();	
+					if(cs.next()){
+						prjid=Util.null2String(cs.getString("id"));
+					}
+					cs.close();
+				} catch (Exception e) {
+					cs.close();
+					e.printStackTrace();
+				}				
+
+			if(!"".equals(prjid) ){
 				pidDefMap.put("prjid", prjid);
 				pidDefMap.put("id", su.getTableMaxId("hs_project_fielddata"));
 				iu.insert(pidDefMap, "hs_project_fielddata");
+				pld.writePrjLog("0", "0", prjid, pidComMap, pidDefMap, new HashMap<String, String>(), new HashMap<String, String>(), prjtype, userid);
 			}
 			if(!"".equals(prjid)){
-				insertPrjProcess(prjid,prjtype);
+				insertPrjProcess(prjid,prjtype,userid);
 			}
 			return prjid;
 		}
@@ -76,45 +93,66 @@ public class ProjectInfoImpl {
 		 * @param pidDefMap
 		 * @param prjid
 		 */
-		public void editProjectInfo(Map<String, String> pidComMap,Map<String, String> pidDefMap,String prjid){
+		public void editProjectInfo(Map<String, String> pidComMap,Map<String, String> pidDefMap,String prjid,String userid){
 			RecordSet rs = new RecordSet();
 			SysnoUtil su = new SysnoUtil();
 			InsertUtil iu = new InsertUtil();
+			PrjLogDao pld = new PrjLogDao();
 			String sql="";
 			String ideId="";
-			String belongdepart = pidComMap.get("belongdepart");
+			String prjtype = "";
+			Map<String, String> oldComMap = new HashMap<String, String>();
+			Map<String, String> oldDefMap = new HashMap<String, String>();
+			oldComMap = getOldValueMap(prjid,pidComMap,"0");
+			iu.updateGen(pidComMap, "hs_projectinfo", "id", prjid);
+
+			String belongdepart = "";
+
 			String belongCompany = "";
+			sql="select belongdepart,prjtype from hs_projectinfo where id="+prjid;
+			rs.executeSql(sql);
+			if(rs.next()){
+				belongdepart = Util.null2String(rs.getString("belongdepart"));
+				prjtype = Util.null2String(rs.getString("prjtype"));
+			}
 			if(!"".equals(belongdepart)){
 				sql="select subcompanyid1 from HrmDepartment where id="+belongdepart;
 				rs.executeSql(sql);
 				if(rs.next()){
 					belongCompany = Util.null2String(rs.getString("subcompanyid1"));
 				}
-				pidComMap.put("belongCompany", belongCompany);
+				 
+			}else{
+				belongCompany = "";
 			}
-			iu.updateGen(pidComMap, "hs_projectinfo", "id", prjid);
+			sql="update hs_projectinfo set belongCompany='"+belongCompany+"' where id="+prjid;
+			rs.executeSql(sql);
+			
 			sql="select id from hs_project_fielddata where prjid="+prjid;
 			rs.executeSql(sql);
 			if(rs.next()){
 				ideId = Util.null2String(rs.getString("id"));
 			}
-			if("".equals(ideId) && pidDefMap.size()>0){
+			if("".equals(ideId) ){
 				pidDefMap.put("prjid", prjid);
 				pidDefMap.put("id", su.getTableMaxId("hs_project_fielddata"));
 				iu.insert(pidDefMap, "hs_project_fielddata");
 			}else if(!"".equals(ideId) && pidDefMap.size()>0){
+				oldDefMap = getOldValueMap(prjid,pidDefMap,"0");
 				iu.updateGen(pidDefMap, "hs_project_fielddata", "id", ideId);
 			}
+			pld.writePrjLog("1", "0", prjid, pidComMap, pidDefMap, oldComMap, oldDefMap, prjtype, userid);
 		}
 		/**
 		 * 插入项目过程
 		 * @param prjid
-		 * @param prjtype
+		 * @param prjtype 
 		 */
-		public void insertPrjProcess(String prjid,String prjtype){
+		public void insertPrjProcess(String prjid,String prjtype,String userid){
 			RecordSet rs = new RecordSet();
 			InsertUtil iu = new InsertUtil();
 			SysnoUtil su = new SysnoUtil();
+			PrjLogDao pld = new PrjLogDao();
 			String 	processtype = "";
 			String processname = "";
 			String sql="select id,processname from uf_prj_process where prjtype='"+prjtype+"' and isused='1' order by dsporder asc,id asc";
@@ -122,14 +160,21 @@ public class ProjectInfoImpl {
 			while(rs.next()){
 				processtype = Util.null2String(rs.getString("id"));
 				processname = Util.null2String(rs.getString("processname"));
-
+				String processid=su.getTableMaxId("hs_prj_process");
 				Map<String, String> processMap = new HashMap<String, String>();
 				processMap.put("processname", processname);
 				processMap.put("prjtype", prjtype);
 				processMap.put("processtype", processtype);
 				processMap.put("prjid", prjid);
-				processMap.put("id", su.getTableMaxId("hs_prj_process"));
+				processMap.put("id",processid);
 				iu.insert(processMap, "hs_prj_process");
+				
+				Map<String, String> pidDefMap = new HashMap<String, String>();
+				pidDefMap.put("prjid", prjid);
+				pidDefMap.put("processid", processid);
+				pidDefMap.put("id", su.getTableMaxId("hs_prj_process_fielddata"));
+				iu.insert(pidDefMap, "hs_prj_process_fielddata");
+				pld.writePrjLog("0", "1", processid, processMap, pidDefMap, new HashMap<String, String>(), new HashMap<String, String>(), processtype, userid);
 			}
 		}
 		
@@ -150,5 +195,36 @@ public class ProjectInfoImpl {
 			}
 			seqNo=su.getNum(proTypeCode, "hs_projectinfo", indexno);
 			return seqNo;
+		}
+		/**
+		 * 
+		 * @param prjid 项目id
+		 * @param type  类型 0 通用 1自定义
+		 * @return
+		 */
+		public Map<String, String> getOldValueMap(String prjid,Map<String, String> newMap,String type){
+			RecordSet rs = new RecordSet();
+			Map<String, String> oldMap = new HashMap<String, String>();
+			String sql="";
+			String fieldName = "";
+			String oldValue = "";
+			if("0".equals(type)){
+				sql="select * from hs_projectinfo where id="+prjid;
+			}else{
+				sql="select * from hs_project_fielddata where prjid="+prjid;
+			}
+			rs.executeSql(sql);
+			if(rs.next()){
+				Iterator<String> it = newMap.keySet().iterator();
+				while(it.hasNext()){
+					fieldName = Util.null2String(it.next());
+					if("".equals(fieldName)){
+						continue;
+					}
+					oldValue = Util.null2String(rs.getString(fieldName));
+					oldMap.put(fieldName, oldValue);
+				}
+			}
+			return oldMap;
 		}
 }

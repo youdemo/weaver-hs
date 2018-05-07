@@ -18,10 +18,11 @@
 %>
 
 <%
+	int userid = user.getUID();
 	BaseBean log = new BaseBean();
 	FileUpload fu = new FileUpload(request);
 	ProjectInfoImpl  pii = new ProjectInfoImpl();
-    String submitType = Util.null2String(fu.getParameter("submitType"));//提交类型
+    String submitType_mt = Util.null2String(fu.getParameter("submitType_mt"));//提交类型
 	String prjtype = Util.null2String(fu.getParameter("prjtype"));
 	String prjid = Util.null2String(fu.getParameter("prjid"));//
 	//log.writeLog("begindate"+fu.getParameter("begindate"));
@@ -37,16 +38,30 @@
 			continue;
 		}
 		if("0".equals(isCommon)){
-			pidComMap.put(fieldName,Util.null2String(fu.getParameter(fieldName)));
+			if("edit1".equals(submitType_mt)){
+				if(!"".equals(Util.null2String(fu.getParameter(fieldName)))){
+					pidComMap.put(fieldName,Util.null2String(fu.getParameter(fieldName)));
+				}
+			}else{
+				pidComMap.put(fieldName,Util.null2String(fu.getParameter(fieldName)));
+			}
 		}else{
-			pidDefMap.put(fieldName,Util.null2String(fu.getParameter("idef_"+fieldName)));
+			if("edit1".equals(submitType_mt)){
+				if(!"".equals(Util.null2String(fu.getParameter("idef_"+fieldName)))){
+					pidDefMap.put(fieldName,Util.null2String(fu.getParameter("idef_"+fieldName)));
+				}
+			}else{
+				pidDefMap.put(fieldName,Util.null2String(fu.getParameter("idef_"+fieldName)));
+			}
 		}
 	}
-	if("add".equals(submitType)){
+	if("add".equals(submitType_mt)){
 		
-		prjid=pii.addPorjectInfo(pidComMap,pidDefMap,prjtype);
-	}else if("edit".equals(submitType)){
-		pii.editProjectInfo(pidComMap,pidDefMap,prjid);
+		prjid=pii.addPorjectInfo(pidComMap,pidDefMap,prjtype,""+userid);
+	}else if("edit".equals(submitType_mt)){
+		pii.editProjectInfo(pidComMap,pidDefMap,prjid,""+userid);
+	}else if("edit1".equals(submitType_mt)){
+		pii.editProjectInfo(pidComMap,pidDefMap,prjid,""+userid);
 	}
 
 	//response.sendRedirect("/hsproject/project/view/hs-project-info-url.jsp?id="+prjid);

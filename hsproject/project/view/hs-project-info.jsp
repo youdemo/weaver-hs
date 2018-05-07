@@ -70,7 +70,7 @@ weaver.general.AccountType.langId.set(lg);
 	}else{
 		canedit = "1";
 	}
-
+	String isdjr = projectUtil.checkisDepartPerson(String.valueOf(userid),prjid);
 	%>
 	<BODY>
 		<div id="tabDiv">
@@ -97,6 +97,10 @@ weaver.general.AccountType.langId.set(lg);
 						if("1".equals(canedit)){
 					%>
 					<input type="button" value="编辑" class="e8_btn_top_first" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100px;" onclick="editprj();"/>
+					<%
+						}else if("1".equals(isdjr)){
+					%>
+						<input type="button" value="编辑" class="e8_btn_top_first" style="overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 100px;" onclick="editprj1();"/>
 					<%
 						}
 					%>
@@ -127,7 +131,7 @@ weaver.general.AccountType.langId.set(lg);
 			%>
 					
 					<wea:item><%=pfb.getShowname()%></wea:item>
-					<wea:item><%=vtm.doTrans(pfb.getFieldname(),fieldValue, "0")%>	    	
+					<wea:item><%=vtm.doTrans(pfb.getId(),fieldValue, "0")%>	    	
 					</wea:item>		
 			<%
 					}
@@ -182,7 +186,9 @@ weaver.general.AccountType.langId.set(lg);
 		function editprj(){
 			window.location.href="/hsproject/project/view/hs-edit-project.jsp?id=<%=prjid%>&prjtype=<%=prjtype%>";
 		}
-	
+		function editprj1(){
+			window.location.href="/hsproject/project/view/hs-edit-project-djr.jsp?id=<%=prjid%>&prjtype=<%=prjtype%>";
+		}
 	  
    </script>
 	<SCRIPT language="javascript" src="/js/datetime_wev8.js"></script>

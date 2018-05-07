@@ -111,7 +111,7 @@ weaver.general.AccountType.langId.set(lg);
 		<%@ include file="/systeminfo/RightClickMenu_wev8.jsp" %>
 		<FORM id=report name=report action="/hsproject/project/aciton/submit-process-info.jsp" method=post enctype="multipart/form-data">
 			<input type="hidden" name="requestid" value="">
-			<input type="hidden" name="submitType" id="submitType"  value="edit">
+			<input type="hidden" name="submitType_mt" id="submitType_mt"  value="edit">
 			<input type="hidden" name="processtype" id="processtype" value="<%=processtype%>">
 			<input type="hidden" name="prjtype" id="prjtype" value="<%=prjtype%>">
 			<input type="hidden" name="processid" id="processid" value="<%=processid%>">
@@ -267,7 +267,7 @@ weaver.general.AccountType.langId.set(lg);
 					}
 			%>
 						</SPAN>
-                        <INPUT type="hidden" name="<%=showfieldname%>" id="<%=showfieldname%>" value=" <%=fieldValue%>">
+                        <INPUT type="hidden" name="<%=showfieldname%>" id="<%=showfieldname%>" value="<%=fieldValue%>">
 
 				</wea:item>
 			<%	
@@ -402,6 +402,9 @@ weaver.general.AccountType.langId.set(lg);
 	function checkPreviousKeyWord(){
 		var isWrite = '<%=isWrite%>';
 		var keyword = '<%=keyword%>';
+		if(keyword==""){
+			return false;
+		}
 		if(isWrite == "0"){
 			var keyvalue = jQuery("#"+keyword).val();
 			if(keyvalue != "") {

@@ -7,10 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import sun.util.logging.resources.logging;
-
 import weaver.conn.RecordSet;
-import weaver.general.BaseBean;
 import weaver.general.Util;
 /**
  * 获取项目过程信息
@@ -25,7 +22,7 @@ public class ProcessInfoDao {
 	 * @return 
 	 */
 	public Map<String, String> getProcessCommonData(String processId) {
-		BaseBean log = new BaseBean();
+		//BaseBean log = new BaseBean();
 		if ("".equals(processId)) {
 			return null;
 		}

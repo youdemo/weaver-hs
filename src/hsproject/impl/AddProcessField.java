@@ -2,7 +2,6 @@ package hsproject.impl;
 
 import hsproject.dao.AlterTableFieild;
 import weaver.conn.RecordSet;
-import weaver.formmode.setup.ModeRightInfo;
 import weaver.general.Util;
 import weaver.interfaces.workflow.action.Action;
 import weaver.soa.workflow.request.RequestInfo;

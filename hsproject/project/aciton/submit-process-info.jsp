@@ -18,10 +18,10 @@
 %>
 
 <%
-	
+	int userid = user.getUID();
 	FileUpload fu = new FileUpload(request);
 	ProcessInfoImpl  pii = new ProcessInfoImpl();
-    String submitType = Util.null2String(fu.getParameter("submitType"));//提交类型
+    String submitType_mt = Util.null2String(fu.getParameter("submitType_mt"));//提交类型
 	String prjtype = Util.null2String(fu.getParameter("prjtype"));
 	String prjid = Util.null2String(fu.getParameter("prjid"));//
 	String processtype = Util.null2String(fu.getParameter("processtype"));//
@@ -42,11 +42,11 @@
 			pidDefMap.put(fieldName,Util.null2String(fu.getParameter("idef_"+fieldName)));
 		}
 	}
-	if("add".equals(submitType)){
+	if("add".equals(submitType_mt)){
 		
-		processid=pii.addProcessInfo(pidComMap,pidDefMap,prjtype,processtype,prjid);
-	}else if("edit".equals(submitType)){
-		pii.editProcessInfo(pidComMap,pidDefMap,prjtype,processtype,processid);
+		processid=pii.addProcessInfo(pidComMap,pidDefMap,prjtype,processtype,prjid,""+userid);
+	}else if("edit".equals(submitType_mt)){
+		pii.editProcessInfo(pidComMap,pidDefMap,prjtype,processtype,processid,""+userid);
 	}
 
 	//response.sendRedirect("/hsproject/project/view/hs-project-info-url.jsp?id="+prjid);

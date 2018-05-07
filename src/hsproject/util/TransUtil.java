@@ -35,7 +35,7 @@ public class TransUtil {
 			}
 		}
 		return url;
-	}
+	} 
 	
 	public String getSelectValue(String selectbutton,String value){
 		String result = "";
@@ -166,5 +166,23 @@ public class TransUtil {
 		}
 		transResult.append("</span>");
 		return transResult.toString();
+	}
+	
+	public String getPrjNameForColor(String name,String id) throws Exception{
+		RecordSet rs = new RecordSet();
+		String str = name;
+		String isdelay = "";
+		String sql="select isdelay from hs_projectinfo where id="+id;
+		rs.executeSql(sql);
+		if(rs.next()){
+			isdelay = Util.null2String(rs.getString("isdelay"));
+		}
+	    if ("0".equals(isdelay)) {
+	    	str = "<span style='color:red;'>"+name+"</span>";
+	    }
+	    else{
+	    	str=name;
+	    }
+	    return str;
 	}
 }

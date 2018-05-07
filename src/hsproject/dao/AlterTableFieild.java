@@ -17,14 +17,14 @@ public class AlterTableFieild {
 		RecordSet rs = new RecordSet();
 		String sql="";
 		if("1".equals(type)||"2".equals(type)||"3".equals(type)||"4".equals(type)){
-			sql="alter table "+tableName+" add "+fieldname+" varchar(200)";
+			sql="alter table "+tableName+" add "+fieldname+" varchar2(200)";
 		}else if("0".equals(type)){
 			if("0".equals(detailtype) && Util.getIntValue(lenght,0)>0){
-				sql="alter table "+tableName+" add "+fieldname+" varchar("+lenght+")";
+				sql="alter table "+tableName+" add "+fieldname+" varchar2("+lenght+")";
 			}else if("1".equals(detailtype)){
-				sql="alter table "+tableName+" add "+fieldname+" int";
+				sql="alter table "+tableName+" add "+fieldname+" integer";
 			}else if("2".equals(detailtype)){
-				sql="alter table "+tableName+" add "+fieldname+" decimal(12,"+floatlength+")";
+				sql="alter table "+tableName+" add "+fieldname+" NUMBER(15,"+floatlength+")";
 			}
 		}
 		if(!"".equals(sql)){

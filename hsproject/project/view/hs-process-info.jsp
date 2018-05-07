@@ -132,7 +132,7 @@ weaver.general.AccountType.langId.set(lg);
 			%>
 					
 					<wea:item><%=pfb.getShowname()%></wea:item>
-					<wea:item><%=vtm.doTrans(pfb.getFieldname(),fieldValue, "1")%>	    	
+					<wea:item><%=vtm.doTrans(pfb.getId(),fieldValue, "1")%>	    	
 					</wea:item>		
 			<%
 					}

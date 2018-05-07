@@ -1,7 +1,6 @@
 package hsproject.util;
 
 import weaver.conn.RecordSet;
-import weaver.general.BaseBean;
 import weaver.general.Util;
 
 public class ValueTransMethod {
@@ -11,7 +10,7 @@ public class ValueTransMethod {
 	 * @param value
 	 * @param type 0 项目信息 1 过程
 	 */
-	public String doTrans(String fieldname,String value,String type){
+	public String doTrans(String fieldid,String value,String type){
 		String tablename = "";
 		String fieldtype = "";
 		String texttype = "";
@@ -28,7 +27,7 @@ public class ValueTransMethod {
 		}else{
 			return value;
 		}
-		String sql="select  fieldtype,texttype,buttontype,selectbutton from "+tablename+" where fieldname='"+fieldname+"'";
+		String sql="select  fieldtype,texttype,buttontype,selectbutton from "+tablename+" where id='"+fieldid+"'";
 		rs.executeSql(sql);
 		if(rs.next()){
 			fieldtype = Util.null2String(rs.getString("fieldtype"));
@@ -44,7 +43,7 @@ public class ValueTransMethod {
 	}
 	
 	public String getTransValue(String fieldtype,String texttype,String buttontype,String selectbutton,String value) throws Exception{
-		BaseBean log = new BaseBean();
+		//BaseBean log = new BaseBean();
 		String result ="";
 		if("0".equals(fieldtype)){
 			result = value;

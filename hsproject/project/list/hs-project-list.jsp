@@ -48,7 +48,7 @@ weaver.general.AccountType.langId.set(lg);
 	String needfav ="1";
 	String needhelp ="";
 	boolean flagaccount = weaver.general.GCONST.getMOREACCOUNTLANDING();
-    String out_pageId = "hsxmlb123";
+    String out_pageId = "hsxmlball";
 	String prjname = Util.null2String(request.getParameter("prjname"));
 	String procode = Util.null2String(request.getParameter("procode"));
 	String prjtype = Util.null2String(request.getParameter("prjtype"));
@@ -57,6 +57,8 @@ weaver.general.AccountType.langId.set(lg);
 	String endDate = Util.null2String(request.getParameter("endDate"));
 	String beginDate1 = Util.null2String(request.getParameter("beginDate1"));
 	String endDate1 = Util.null2String(request.getParameter("endDate1"));
+	String department =Util.null2String(request.getParameter("department"));
+	String isdelay = Util.null2String(request.getParameter("isdelay"));
 
 	%>
 	<BODY>
@@ -132,6 +134,27 @@ weaver.general.AccountType.langId.set(lg);
                         <SPAN id=endDateSpan1><%=endDate1%></SPAN>
                         <INPUT type="hidden" name="endDate1" id="endDate1" value="<%=endDate1%>">
                 	</wea:item>
+                	<wea:item>归属部门</wea:item>
+                	<wea:item>
+                    <brow:browser viewType="0" name="department" browserValue='<%=department%>'
+                    browserurl="/systeminfo/BrowserMain.jsp?mouldID=hrm&url=/hrm/company/MutiDepartmentBrowser.jsp?selectedids="
+                    hasInput="true" isSingle="false" hasBrowser = "true" isMustInput='1'
+                    completeUrl="/data.jsp?type=4"
+                    browserSpanValue="<%= new BrowserInfoUtil().getMulDepartname(department)%>" ></brow:browser>
+                    </wea:item>
+
+                    <wea:item>是否延期</wea:item>
+                	<wea:item>
+                      <select class="e8_btn_top middle" name="isdelay" id="isdelay">
+		                <option value="" <%if("".equals(isdelay)){%> selected<%} %>>
+		                    <%=""%></option>
+		                <option value="0" <%if("0".equals(isdelay)){%> selected<%} %>>
+		                    <%="是"%></option>
+		                <option value="1" <%if("1".equals(isdelay)){%> selected<%} %>>
+		                    <%="否"%></option>
+                </select>
+
+                    </wea:item>
 
 
 				</wea:group>
@@ -145,7 +168,7 @@ weaver.general.AccountType.langId.set(lg);
 			</div>
 		</FORM>
 		<%
-		String backfields = "id,name, procode,prjtype,manager,members,begindate,enddate,status ";
+		String backfields = "id,name, procode,prjtype,manager,members,begindate,enddate,status,belongdepart,belongCompany,case when isdelay='0' then '是' else '否' end as isdelay";
 		String fromSql  =  " from hs_projectinfo t1";
 		String sqlWhere =  " 1=1 ";
 		sqlWhere = sqlWhere + projectUtil.getPrjShareWhereByUser(String.valueOf(userid));
@@ -174,6 +197,17 @@ weaver.general.AccountType.langId.set(lg);
 			sqlWhere = sqlWhere+" and endDate <='"+endDate1+"'";
 		}
 
+		if(!"".equals(department)){
+			sqlWhere+=" and belongdepart in("+department+") ";
+		}
+		if(!"".equals(isdelay)){
+			if("0".equals(isdelay)){
+				sqlWhere+=" and isdelay ='0' ";
+			}else{
+				sqlWhere+=" and (isdelay ='1' or isdelay is null) ";
+			}
+		}
+
 		//out.print("select "+backfields+fromSql+" where "+sqlWhere);
 		String orderby =  " id desc "  ;
 		String tableString = "";
@@ -182,14 +216,18 @@ weaver.general.AccountType.langId.set(lg);
 				   "	   <sql backfields=\""+backfields+"\" sqlform=\""+fromSql+"\" sqlwhere=\""+Util.toHtmlForSplitPage(sqlWhere)+"\"  sqlorderby=\""+orderby+"\"  sqlprimarykey=\"id\" sqlsortway=\"desc\" sqlisdistinct=\"false\" />"+
 		operateString+
 		"			<head>";
-				tableString +="<col width=\"12%\" text=\"项目名称\" column=\"name\" orderkey=\"name\" linkvaluecolumn=\"id\" linkkey=\"id\" href= \"/hsproject/project/view/hs-project-info-url.jsp\" target=\"_fullwindow\"/>"+ 
+				tableString +="<col width=\"12%\" text=\"项目名称\" column=\"name\" orderkey=\"name\"  otherpara=\"column:id\"  transmethod='hsproject.util.TransUtil.getPrjNameForColor' linkvaluecolumn=\"id\" linkkey=\"id\" href= \"/hsproject/project/view/hs-project-info-url.jsp\" target=\"_fullwindow\"/>"+ 
 						"<col width=\"12%\" text=\"项目编号\" column=\"procode\" orderkey=\"procode\" />"+
 						"<col width=\"12%\" text=\"项目类型\" column=\"prjtype\" orderkey=\"prjtype\" transmethod=\"hsproject.dao.ProjectTypeDao.getTypeName\" />"+
                 		"<col width=\"12%\" text=\"项目经理\" column=\"manager\" orderkey=\"manager\" transmethod='weaver.proj.util.ProjectTransUtil.getResourceNamesWithLink'/>"+
                 		"<col width=\"12%\" text=\"项目成员\" column=\"members\" orderkey=\"members\" transmethod='weaver.proj.util.ProjectTransUtil.getResourceNamesWithLink'/>"+
                 		"<col width=\"12%\" text=\"项目开始时间\" column=\"begindate\" orderkey=\"begindate\" />"+
                 		"<col width=\"12%\" text=\"项目结束时间\" column=\"enddate\" orderkey=\"enddate\" />"+
-                		"<col width=\"12%\" text=\"项目状态\" column=\"status\" orderkey=\"status\" />/>"+
+                		"<col width=\"12%\" text=\"项目状态\" column=\"status\" orderkey=\"status\" />"+
+                		"<col width=\"12%\" text=\"是否延期\" column=\"isdelay\" orderkey=\"isdelay\"  />"+
+                		"<col width=\"12%\" text=\"归属部门\" column=\"belongdepart\" orderkey=\"belongdepart\" transmethod='hsproject.util.BrowserInfoUtil.getMulDepartname' display=\"false\" />"+
+                		"<col width=\"12%\" text=\"归属公司\" column=\"belongCompany\" orderkey=\"belongCompany\" transmethod='hsproject.util.BrowserInfoUtil.getMulSubCompany' display=\"false\" />"+
+						
 						"</head>"+
 		 "</table>";
 	//showExpExcel="false"

@@ -6,7 +6,7 @@ import weaver.conn.ConnStatement;
 public class OutDataLogDao {
 	public void insertLog(OutDataLogBean odlb) {
 		ConnStatement cs = new ConnStatement();
-		String sql="insert into zoa_wffield_map(mtid,type,fieldtype,prjid,processid,sysnfield,oldvalue,newvalue,sysnsql,updatesql,sysndate,sysntime,description,logtype) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		String sql="insert into uf_outdata_log(mtid,type,fieldtype,prjid,processid,sysnfield,oldvalue,newvalue,sysnsql,updatesql,sysndate,sysntime,description,logtype) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		try {
 			cs.setStatementSql(sql);
 			cs.setString(1,odlb.getMtid());
@@ -31,10 +31,26 @@ public class OutDataLogDao {
 		}				
 		
 	}
-
+	/**
+	 * 
+	 * @param mtid 同步配置id
+	 * @param type 同步类型  0项目 1过程
+	 * @param fieldtype 字段类型 0通用 1自定义
+	 * @param prjid 项目id
+	 * @param processid 过程id
+	 * @param sysnfield 同步字段名
+	 * @param oldvalue
+	 * @param newvalue
+	 * @param sysnsql 同步sql
+	 * @param updatesql 更新sql
+	 * @param sysndate 同步日期
+	 * @param sysntime 同步时间
+	 * @param description 描述
+	 * @param logtype 日志类型 0成功，1失败
+	 */
 	public void writeLog(String mtid,String type,String fieldtype,String prjid,String processid,String sysnfield,String oldvalue,String newvalue,String sysnsql,String updatesql,String sysndate,String sysntime,String description,String logtype ){
 		ConnStatement cs = new ConnStatement();
-		String sql="insert into zoa_wffield_map(mtid,type,fieldtype,prjid,processid,sysnfield,oldvalue,newvalue,sysnsql,updatesql,sysndate,sysntime,description,logtype) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		String sql="insert into uf_outdata_log(mtid,type,fieldtype,prjid,processid,sysnfield,oldvalue,newvalue,sysnsql,updatesql,sysndate,sysntime,description,logtype) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 		try {
 			cs.setStatementSql(sql);
 			cs.setString(1,mtid);

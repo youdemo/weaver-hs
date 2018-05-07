@@ -1,9 +1,14 @@
 package hsproject.impl;
 
 import hsproject.bean.OutDataMtBean;
+import hsproject.bean.ProcessFieldBean;
+import hsproject.bean.ProjectFieldBean;
 import hsproject.dao.OutDataLogDao;
+import hsproject.dao.ProcessFieldDao;
 import hsproject.dao.ProcessInfoDao;
+import hsproject.dao.ProjectFieldDao;
 import hsproject.dao.ProjectInfoDao;
+import hsproject.util.InsertUtil;
 import hsproject.util.SysnoUtil;
 
 import java.util.ArrayList;
@@ -11,11 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import sun.util.logging.resources.logging;
+import com.dc.engine.core.f;
 
 import weaver.conn.RecordSet;
 import weaver.conn.RecordSetDataSource;
@@ -33,8 +34,7 @@ public class SysnOutDataImpl {
 	 * @param min
 	 * @return
 	 */
-	public List<OutDataMtBean> getSysnMtIds(String month,String day,String hour,String min){
-		String ids = "";
+	public List<OutDataMtBean> getSysnMtIds(String month,String day,String hour){
 		String sql = "";
 		String id = "";
 		String datasource = "";
@@ -46,15 +46,13 @@ public class SysnOutDataImpl {
 		RecordSet rs = new RecordSet();
 		BaseBean log = new BaseBean();
 		List<OutDataMtBean> list = new ArrayList<OutDataMtBean>();
-		if("".equals(month) || "".equals(day) || "".equals(hour) || "".equals(min)){
+		if("".equals(month) || "".equals(day) || "".equals(hour) ){
 			return list;
 		}
-		if("1".equals(min)){
-			sql = "select *  from uf_prj_outdata_mt where month='"+month+"' and day='"+day+"' and hour='"+hour+"' and isused='1' ";
-		}else{
-			sql = "select *  from uf_prj_outdata_mt where month='"+month+"' and day='"+day+"' and hour='"+hour+"' and halfhour='"+min+"' and isused='1' ";
-		}
 		
+		sql = "select *  from uf_prj_outdata_mt where (month='"+month+"' or month='0') and (day='"+day+"' or day='0') and (hour='"+hour+"' or hour='0') and isused='1' ";
+		
+		//log.writeLog("getSysnMtIds sql"+sql);
 		rs.executeSql(sql);
 		while(rs.next()){
 			id = Util.null2String(rs.getString("id"));
@@ -122,7 +120,7 @@ public class SysnOutDataImpl {
 		String sql = "";
 		int count = 0;
 		sql = "select count(1) as count from "+tablename+" where "+key+"='"+keyValue+"'";
-		log.writeLog("check sql:"+sql);
+		//log.writeLog("check sql:"+sql);
 		rs.executeSql(sql);
 		if(rs.next()){
 			count = rs.getInt("count");
@@ -155,39 +153,43 @@ public class SysnOutDataImpl {
 		String mapfield = odmb.getMapfield();
 		String prjtype = odmb.getPrjtype();
 		String mapsql = odmb.getMapsql();		
-		
+		ProjectFieldBean pfb= new ProjectFieldDao().getPrjFieldBean(prjfield);
+		ProcessFieldBean psfb = new ProcessFieldDao().getProcessFieldBean(processfield);
 		dataSourceFlag = getDataSourceFlag(datasource);
 		if("".equals(dataSourceFlag)){
-			odld.writeLog(odmb.getId(), processtype,"", "", "", "", "", "", "", "", nowDate, nowTime, "数据源标识找不到", "1");
+			odld.writeLog(odmb.getId(),type,"", "", "", "", "", "", "", "", nowDate, nowTime, "数据源标识找不到", "1");
 			return;
 		}
 		Map<String,String> checkMap=checkMapSql(mapsql,type,prjtype,processtype,mapfield);
 		String checkResult = checkMap.get("result");
 		String fieldNames = checkMap.get("fieldNames");
-		log.writeLog("checkResult:"+checkResult);
-		log.writeLog("fieldNames:"+fieldNames);
+		//log.writeLog("checkResult:"+checkResult);
+		//log.writeLog("fieldNames:"+fieldNames);
 		if("-1".equals(checkResult)){
-			//log
+			odld.writeLog(odmb.getId(),type,"", "", "", "", "", "", "", "", nowDate, nowTime, "同步sql检查失败", "1");
 			return;
 		}
 
 		String prjid = "";
 		 if("0".equals(type)){
-			sql="select id from hs_projectinfo where prjtype='"+prjtype+"'";
-			log.writeLog(sql);
+			sql="select * from hs_projectinfo where prjtype='"+prjtype+"'";
+			//log.writeLog(sql);
 			rs.executeSql(sql);
 			while(rs.next()){
 				fieldname = "";
 				fieldvalue = "";
 				sysnValue = "";
 				prjid = Util.null2String(rs.getString("id"));
-				log.writeLog("prjid:"+prjid);
+				//log.writeLog("prjid:"+prjid);
 				ProjectInfoDao pid = new ProjectInfoDao();
 				Map<String, String> pidComMap=pid.getProjetCommonData(prjid);
 				Map<String, String> pidDefMap=pid.getProjetDefineData(prjid);
 				String fieldArr[]=fieldNames.split(",");
 				for(int i=0;i<fieldArr.length;i++){
-					fieldname = fieldArr[i];
+					fieldname = Util.null2String(fieldArr[i]);
+					if("".equals(fieldname)){
+						continue;
+					}
 					if(fieldname.indexOf("def_")>=0){
 						fieldvalue = pidDefMap.get(fieldname.replace("def_", ""));
 					}else{
@@ -195,21 +197,21 @@ public class SysnOutDataImpl {
 					}
 					fieldname="##"+fieldname+"##";
 					mapsql = mapsql.replace(fieldname, fieldvalue);
-					log.writeLog("mapsql:"+mapsql);
+					//log.writeLog("mapsql:"+mapsql);
 				}
 
 				Map<String,String> sysnmap=getSysnValue(dataSourceFlag,mapsql,mapfield);
 				if("-1".equals(sysnmap.get("result"))){
-					log.writeLog("sysnmap error:");
-					continue;
+					odld.writeLog(odmb.getId(),"0",pfb.getIscommon(), prjid, "", pfb.getFieldname(), "", "", mapsql, "", nowDate, nowTime, "执行同步sql获取值失败", "1");
+					return;
 				}
 				sysnValue = sysnmap.get("value");
-				log.writeLog("sysnmap sysnValue:"+sysnValue);
-				updateProjectData(prjid,prjfield,sysnValue);
+				//log.writeLog("sysnmap sysnValue:"+sysnValue);
+				updateProjectData(prjid,prjfield,sysnValue,odmb.getId(),mapsql,nowDate,nowTime);
 			}
 		}else if("1".equals(type)){
 			String processid = "";
-			sql="select id from hs_prj_process where prjtype='"+prjtype+"' and processtype='"+processtype+"'";
+			sql="select * from hs_prj_process where prjtype='"+prjtype+"' and processtype='"+processtype+"'";
 			rs.executeSql(sql);
 			while(rs.next()){
 				fieldname = "";
@@ -217,31 +219,35 @@ public class SysnOutDataImpl {
 				sysnValue = "";
 				prjid = Util.null2String(rs.getString("prjid"));
 				processid = Util.null2String(rs.getString("id"));
-				log.writeLog("processid"+processid);
+				//log.writeLog("processid"+processid);
 				ProcessInfoDao pid = new ProcessInfoDao();
 				Map<String, String> pidComMap=pid.getProcessCommonData(processid);
 				Map<String, String> pidDefMap=pid.getProcessDefineData(processid);
 				String fieldArr[]=fieldNames.split(",");
 				for(int i=0;i<fieldArr.length;i++){
-					fieldname = fieldArr[i];
+					fieldname = Util.null2String(fieldArr[i]);
+					if("".equals(fieldname)){
+						continue;
+					}
 					if(fieldname.indexOf("def_")>=0){
 						fieldvalue = pidDefMap.get(fieldname.replace("def_", ""));
 					}else{
 						fieldvalue = pidComMap.get(fieldname);
-						log.writeLog("fieldname"+fieldname+" fieldvalue"+fieldvalue);
+						//log.writeLog("fieldname"+fieldname+" fieldvalue"+fieldvalue);
 					}
 					fieldname="##"+fieldname+"##";
 					mapsql = mapsql.replace(fieldname, fieldvalue);
-					log.writeLog("mapsql:"+mapsql);
+					//log.writeLog("mapsql:"+mapsql);
 				}
 				Map<String,String> sysnmap=getSysnValue(dataSourceFlag,mapsql,mapfield);
 				if("-1".equals(sysnmap.get("result"))){
-					//log
+					//log.writeLog("sysnmap aaa");
+					odld.writeLog(odmb.getId(),"1",psfb.getIscommon(), prjid, processid, psfb.getFieldname(), "", "", mapsql, "", nowDate, nowTime, "执行同步sql获取值失败", "1");
 					continue;
 				}
 				sysnValue = sysnmap.get("value");
-				log.writeLog("sysnmap sysnValue:"+sysnValue);
-				updateProcessData(prjid,processid,processfield,sysnValue);
+				//log.writeLog("sysnmap sysnValue:"+sysnValue);
+				updateProcessData(prjid,processid,processfield,sysnValue,odmb.getId(),mapsql,nowDate,nowTime);
 			}
 		}
 		
@@ -252,14 +258,17 @@ public class SysnOutDataImpl {
 	 * @param prjfield
 	 * @param sysnvalue
 	 */
-	public void updateProjectData(String prjid,String prjfield,String sysnvalue){
+	public void updateProjectData(String prjid,String prjfield,String sysnvalue,String mtid,String mapsql,String nowDate,String nowTime){
+		InsertUtil iu = new InsertUtil();
+		OutDataLogDao odld = new OutDataLogDao();
 		RecordSet rs = new RecordSet();
 		String sql = "";
 		String fieldname = "";
 		String iscommon = "";
 		String oldvalue="";
+		boolean result=true;
 		sql = "select fieldname,iscommon from uf_project_field where id="+prjfield;
-		log.writeLog("sql:"+sql);
+		//log.writeLog("sql:"+sql);
 		rs.executeSql(sql);
 		if(rs.next()){
 			fieldname = Util.null2String(rs.getString("fieldname"));
@@ -267,31 +276,55 @@ public class SysnOutDataImpl {
 		}
 		if("0".equals(iscommon)){
 			sql="select * from hs_projectinfo where id="+prjid;
-			log.writeLog("sql:"+sql);
+			//log.writeLog("sql:"+sql);
 			rs.executeSql(sql);
 			if(rs.next()){
 				oldvalue = Util.null2String(rs.getString(fieldname));
+				Map<String, String> map = new HashMap<String, String>();
+				map.put(fieldname, sysnvalue);
+				result=iu.updateGen(map, "hs_projectinfo", "id", prjid);
 				sql="update hs_projectinfo set "+fieldname+"='"+sysnvalue+"' where id="+prjid;
-				log.writeLog("sysn sql:"+sql);
-				rs.executeSql(sql);
-				//log
-				
+				//log.writeLog("sysn sql:"+sql);
+				//result = rs.executeSql(sql);
+				if(result){
+					odld.writeLog(mtid,"0","0", prjid, "", fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "同步成功", "0");
+				}else{ 
+					odld.writeLog(mtid,"0","0", prjid, "", fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "更新sql执行失败", "1");	
+				}
 			}
-		}
-		if("1".equals(iscommon)){
+		}else if("1".equals(iscommon)){
 			sql="select * from hs_project_fielddata where prjid="+prjid;
-			log.writeLog("sql:"+sql);
+			//log.writeLog("sql:"+sql);
 			rs.executeSql(sql);
 			if(rs.next()){
 				oldvalue = Util.null2String(rs.getString(fieldname));
+				Map<String, String> map = new HashMap<String, String>();
+				map.put(fieldname, sysnvalue);
+				result=iu.updateGen(map, "hs_project_fielddata", "prjid", prjid);
 				sql="update hs_project_fielddata set "+fieldname+"='"+sysnvalue+"' where prjid="+prjid;
-				log.writeLog("sysn sql:"+sql);
-				rs.executeSql(sql);
+				//log.writeLog("sysn sql:"+sql);
+				//result = rs.executeSql(sql);
+				if(result){
+					odld.writeLog(mtid,"0","1", prjid, "", fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "同步成功", "0");
+				}else{
+					odld.writeLog(mtid,"0","1", prjid, "", fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "更新sql执行失败", "1");	
+				}
 			}else{
 				SysnoUtil su = new SysnoUtil();
+				Map<String, String> map = new HashMap<String, String>();
+				map.put("id", su.getTableMaxId("hs_project_fielddata"));
+				map.put("prjid", prjid);
+				map.put(fieldname, sysnvalue);
+				result=iu.insert(map, "hs_project_fielddata");
+				//result=iu.updateGen(map, "hs_project_fielddata", "prjid", prjid);
 				sql="insert into hs_project_fielddata(id,prjid,"+fieldname+") values("+su.getTableMaxId("hs_project_fielddata")+",'"+prjid+"','"+sysnvalue+"')";
-				log.writeLog("sysn sql:"+sql);
-				rs.executeSql(sql);
+				//log.writeLog("sysn sql:"+sql);
+				//result = rs.executeSql(sql);
+				if(result){
+					odld.writeLog(mtid,"0","1", prjid, "", fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "同步成功", "0");
+				}else{
+					odld.writeLog(mtid,"0","1", prjid, "", fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "更新sql执行失败", "1");	
+				}
 			}
 			
 		}
@@ -304,45 +337,113 @@ public class SysnOutDataImpl {
 	 * @param processfield
 	 * @param sysnvalue
 	 */
-	public void updateProcessData(String prjid,String processid,String processfield,String sysnvalue){
+	public void updateProcessData(String prjid,String processid,String processfield,String sysnvalue,String mtid,String mapsql,String nowDate,String nowTime){
+		InsertUtil iu = new InsertUtil();
+		OutDataLogDao odld = new OutDataLogDao();
 		RecordSet rs = new RecordSet();
+		ProcessInfoImpl pii = new ProcessInfoImpl();
 		String sql = "";
 		String fieldname = "";
 		String iscommon = "";
 		String oldvalue="";
-		sql = "select fieldname,iscommon from uf_prj_porcessfield where id="+processfield;
-		log.writeLog("sql:"+sql);
+		String keyword = "";
+		String key_iscommon = "";
+		String processtype = "";
+		String isdone = "";
+		String needupdate = "";
+		String prjtype = "";
+		boolean result = true;
+		sql = "select fieldname,iscommon,processtype from uf_prj_porcessfield where id="+processfield;
+		//log.writeLog("sql:"+sql);
 		rs.executeSql(sql);
 		if(rs.next()){
 			fieldname = Util.null2String(rs.getString("fieldname"));
 			iscommon = Util.null2String(rs.getString("iscommon"));
+			processtype = Util.null2String(rs.getString("processtype"));
 		}
-		if("0".equals(iscommon)){
-			sql="select * from hs_prj_process where id="+processid;
-			log.writeLog("sql:"+sql);
-			rs.executeSql(sql);
-			if(rs.next()){
-				oldvalue = Util.null2String(rs.getString(fieldname));
-				sql="update hs_prj_process set "+fieldname+"='"+sysnvalue+"' where id="+processid;
-				log.writeLog("sysn sql:"+sql);
-				rs.executeSql(sql);
-				//log
+		sql="select isdone,prjtype from hs_prj_process where id="+processid;
+		rs.executeSql(sql);
+		if(rs.next()){
+			isdone = Util.null2String(rs.getString("isdone"));
+			prjtype = Util.null2String(rs.getString("prjtype"));
+		}
+		if(!"1".equals(isdone)){
+			Map<String, String> keymap =pii.getkeyWord(processtype);
+			if(keymap.size()>0){
+				keyword = keymap.get("fieldname");
+				key_iscommon = keymap.get("iscommon");
+				//log.writeLog("keyword "+keyword+"key_iscommon "+key_iscommon+" fieldname"+fieldname+" iscommon"+iscommon+" sysnvalue"+sysnvalue);
+				if(keyword.equals(fieldname) && iscommon.equals(key_iscommon)){
+					if(!"".equals(sysnvalue)){
+						needupdate = "1";
+					}
+				}
 			}
 		}
-		if("1".equals(iscommon)){
-			sql="select * from hs_prj_process_fielddata where processid="+processid;
-			log.writeLog("sql:"+sql);
+		//log.writeLog("needupdate"+needupdate);
+		if("0".equals(iscommon)){
+			sql="select * from hs_prj_process where id="+processid;
+			//log.writeLog("sql:"+sql);
 			rs.executeSql(sql);
 			if(rs.next()){
 				oldvalue = Util.null2String(rs.getString(fieldname));
+				Map<String, String> map = new HashMap<String, String>();
+				map.put(fieldname, sysnvalue);
+				result=iu.updateGen(map, "hs_prj_process", "id", processid);
+				sql="update hs_prj_process set "+fieldname+"='"+sysnvalue+"' where id="+processid;
+				//log.writeLog("sysn sql:"+sql);
+				//result = rs.executeSql(sql);
+				if(result){
+					if("1".equals(needupdate)){
+						map = new HashMap<String, String>();
+						map.put("isdone", "1");
+						iu.updateGen(map, "hs_prj_process", "id", processid);
+						pii.updatePrjStatus(prjid,processtype,processid,prjtype);
+					}
+					odld.writeLog(mtid,"1","0", prjid, processfield, fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "同步成功", "0");
+				}else{
+					odld.writeLog(mtid,"1","0", prjid, processfield, fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "更新sql执行失败", "1");	
+				}
+			}
+		}else if("1".equals(iscommon)){
+			sql="select * from hs_prj_process_fielddata where processid="+processid;
+			//log.writeLog("sql:"+sql);
+			rs.executeSql(sql);
+			if(rs.next()){
+				oldvalue = Util.null2String(rs.getString(fieldname));
+				Map<String, String> map = new HashMap<String, String>();
+				map.put(fieldname, sysnvalue);
+				result=iu.updateGen(map, "hs_prj_process_fielddata", "processid", processid);
 				sql="update hs_prj_process_fielddata set "+fieldname+"='"+sysnvalue+"' where processid="+processid;
-				log.writeLog("sysn sql:"+sql);
-				rs.executeSql(sql);
+				//log.writeLog("sysn sql:"+sql);
+				//result = rs.executeSql(sql);
+				if(result){
+					if("1".equals(needupdate)){
+						map = new HashMap<String, String>();
+						map.put("isdone", "1");
+						iu.updateGen(map, "hs_prj_process", "id", processid);
+						pii.updatePrjStatus(prjid,processtype,processid,prjtype);
+					}
+					odld.writeLog(mtid,"1","1", prjid, processfield, fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "同步成功", "0");
+				}else{
+					odld.writeLog(mtid,"1","1", prjid, processfield, fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "更新sql执行失败", "1");	
+				}
 			}else{
 				SysnoUtil su = new SysnoUtil();
+				Map<String, String> map = new HashMap<String, String>();
+				map.put("id", su.getTableMaxId("hs_prj_process_fielddata"));
+				map.put("prjid", prjid);
+				map.put("processid", processid);
+				map.put(fieldname, sysnvalue);
+				result=iu.insert(map, "hs_prj_process_fielddata");
 				sql="insert into hs_prj_process_fielddata(id,prjid,processid,"+fieldname+") values("+su.getTableMaxId("hs_prj_process_fielddata")+",'"+prjid+"','"+processid+"','"+sysnvalue+"')";
-				log.writeLog("sysn sql:"+sql);
-				rs.executeSql(sql);
+				//log.writeLog("sysn sql:"+sql);
+				//result = rs.executeSql(sql);
+				if(result){
+					odld.writeLog(mtid,"1","1", prjid, processfield, fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "同步成功", "0");
+				}else{
+					odld.writeLog(mtid,"1","1", prjid, processfield, fieldname, oldvalue, sysnvalue, mapsql, sql, nowDate, nowTime, "更新sql执行失败", "1");	
+				}
 			}
 			
 		}
@@ -360,11 +461,14 @@ public class SysnOutDataImpl {
 		RecordSetDataSource rsd = new RecordSetDataSource(dataSourceFlag);
 		String sql=mapsql;
 		String value="";
+		//log.writeLog("getSysnValue"+sql);
 		if(rsd.executeSql(sql)){
+			//log.writeLog("getSysnValue true");
 			if(rsd.next()){
 				value = Util.null2String(rsd.getString(mapfield));
 			}
 		}else{
+			//log.writeLog("getSysnValue false");
 			map.put("value", "");
 			map.put("result", "-1");
 			return map;
@@ -424,7 +528,7 @@ public class SysnOutDataImpl {
 				falg2 = ",";
 			}
 			index = Integer.valueOf(map.get("index"));
-			log.writeLog("index"+index);
+			//log.writeLog("index"+index);
 			if(index == -1){
 				flag =false;
 			}else if(index == -2){
@@ -493,14 +597,14 @@ public class SysnOutDataImpl {
 	     int count = 0;
 	     if("0".equals(type)){
 	    	 sql="select count(1) as count from uf_project_field where prjtype='"+prjtype+"' and fieldname='"+fieldname+"' and iscommon='"+isdef+"'";
-	    	 log.writeLog("sql"+sql);
+	    	 //log.writeLog("sql"+sql);
 	    	 rs.executeSql(sql);
 	    	 if(rs.next()){
 	    		 count = rs.getInt("count");
 	    	 }
 	     }else{
 	    	 sql="select count(1) as count from uf_prj_porcessfield where projecttype='"+prjtype+"' and processtype='"+processtype+"' and fieldname='"+fieldname+"' and iscommon='"+isdef+"'";
-	    	 log.writeLog("sql"+sql);
+	    	// log.writeLog("sql"+sql);
 	    	 rs.executeSql(sql);
 	    	 if(rs.next()){
 	    		 count = rs.getInt("count");    		 

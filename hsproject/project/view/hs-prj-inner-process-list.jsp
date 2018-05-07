@@ -116,7 +116,7 @@ weaver.general.AccountType.langId.set(lg);
 		String fromSql  =  " from hs_prj_process";
 		String sqlWhere =  " where 1=1 and prjid='"+prjid+"' ";
 
-		String orderby =  " prjid desc "  ;
+		String orderby =  " id "  ;
 		String tableString = "";
 		String operateString= "";
 		if("1".equals(canedit)){
@@ -129,7 +129,7 @@ weaver.general.AccountType.langId.set(lg);
 		  }
 
 		  tableString =" <table tabletype=\"none\" pagesize=\""+ PageIdConst.getPageSize(out_pageId,user.getUID(),PageIdConst.HRM)+"\" pageId=\""+out_pageId+"\" >"+         
-				   "	   <sql backfields=\""+backfields+"\" sqlform=\""+fromSql+"\" sqlwhere=\""+Util.toHtmlForSplitPage(sqlWhere)+"\"  sqlorderby=\""+orderby+"\"  sqlprimarykey=\"id\" sqlsortway=\"desc\" sqlisdistinct=\"false\" />"+
+				   "	   <sql backfields=\""+backfields+"\" sqlform=\""+fromSql+"\" sqlwhere=\""+Util.toHtmlForSplitPage(sqlWhere)+"\"  sqlorderby=\""+orderby+"\"  sqlprimarykey=\"id\" sqlsortway=\"asc\" sqlisdistinct=\"false\" />"+
 		operateString+
 		"			<head>";
 				tableString +="<col width=\"12%\" text=\"阶段名称\" column=\"processname\" orderkey=\"processname\" linkvaluecolumn=\"id\" linkkey=\"id\" href= \"/hsproject/project/view/hs-process-info-url.jsp\" target=\"_fullwindow\"/>"+ 
