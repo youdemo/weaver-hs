@@ -15,53 +15,7 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		DataSource ds = (DataSource) StaticObj.getServiceByFullname(("datasource.SSH"), DataSource.class);
-		//  status < 4 and
-		ra.executeSql("select workcode from hrmresource where status<5  and isnull(resourceimageid,0) < 100");
-		int flag = 0;
-		while(ra.next()){
-			flag++;
-			String code = Util.null2String(ra.getString("workcode"));
-			out.println(code + " = "+flag+"<br>");
-			if(code.length() < 1) continue;
-			try {
-				String uploadBuffer = "";
-				Connection conn = null;
-				conn = ds.getConnection();
-				ResultSet rs1;
-				String sql = "select Photo1 from tmc_1 where badge = '"+code+"'";
-				if(code.length() == 6){
-					sql = "select Photo1 from tmc_1 where badge like '%"+code+"%'";
-				}
-				rs1 = conn.createStatement().executeQuery(sql);
-				InputStream aa = null;
-					if(rs1.next()){
-						aa= rs1.getBinaryStream(1);
-					}
-				if(aa !=null){
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					
-					 byte[] buffer = new byte[1024];
-					 int count1 = 0;
-					 while((count1 = aa.read(buffer)) >= 0){
-					 baos.write(buffer, 0, count1);
-					 }
-					 uploadBuffer = new String(Base64.encode(baos.toByteArray()));
-			//		out.println(uploadBuffer);
-					String name = code + ".jpg";
-					String imageFileID = getDocId(name,uploadBuffer,"1");
-				}
-			try{
-		               Thread.currentThread().sleep(500);
-		        }catch(InterruptedException ie){
-		        	ie.printStackTrace();
-		        }
-			} catch (Exception e) {
-				e.printStackTrace();
-				out.println(e.getMessage() +"<br>");
-			}
-		}
-
+	
 	}
 	 public void doCancelForGW(int requestid, User user){
 	        WfFunctionManageUtil wfu = new WfFunctionManageUtil();

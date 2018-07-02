@@ -2,6 +2,7 @@ package hsproject.dao;
 
 import hsproject.bean.ProcessCommonFieldBean;
 import hsproject.bean.ProcessFieldBean;
+import hsproject.bean.ProjectFieldBean;
 
 import java.util.HashMap;
 import java.util.List;
@@ -71,5 +72,51 @@ public class ProcessInfoDao {
 			}
 		}
 		return definedMap;
+	}
+	
+	/**
+	 * 根据阶段id获取阶段名称
+	 * @param prjid
+	 * @return
+	 */
+	public String getProcessName(String processid){
+		RecordSet rs = new RecordSet();
+		String processname = "";
+		String sql="select processname from hs_prj_process where id="+processid;
+		rs.executeSql(sql);
+		if(rs.next()){
+			processname = Util.null2String(rs.getString("processname"));
+		}
+		return processname;				
+	}
+	
+	/**
+	 * 获取阶段字段值
+	 * @param processid
+	 * @param fieldid
+	 * @return
+	 */
+	public String getFieldValue(String processid,String fieldid){
+		String fieldValue = "";
+		RecordSet rs = new RecordSet();
+		String sql = "";
+		if("".equals(Util.null2String(processid)) || "".equals(Util.null2String(processid))){
+			return "";
+		}
+		ProcessFieldBean pfb = new ProcessFieldDao().getProcessFieldBean(fieldid);
+		String iscommon = pfb.getIscommon();
+		String fieldname = pfb.getFieldname();
+		if(!"".equals(fieldname)){
+			if("0".equals(iscommon)){
+				sql="select "+fieldname+" from hs_prj_process where id="+processid;
+			}else{
+				sql="select "+fieldname+" from hs_prj_process_fielddata where processid="+processid;
+			}
+			rs.executeSql(sql);
+			if(rs.next()){
+				fieldValue = Util.null2String(rs.getString(fieldname));
+			}
+		}
+		return fieldValue;
 	}
 }

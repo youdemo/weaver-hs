@@ -97,4 +97,34 @@ public class ProjectInfoDao {
 		//result="<a href= \"/hsproject/project/view/hs-project-info-url.jsp?id="+prjid+"\" target=\"_fullwindow\">"+projectName+"</a>";
 		return result;				
 	}
+	
+	/**
+	 * 获取项目字段值
+	 * @param prjid
+	 * @param fieldid
+	 * @return
+	 */
+	public String getFieldValue(String prjid,String fieldid){
+		String fieldValue = "";
+		RecordSet rs = new RecordSet();
+		String sql = "";
+		if("".equals(Util.null2String(prjid)) || "".equals(Util.null2String(fieldid))){
+			return "";
+		}
+		ProjectFieldBean pfb = new ProjectFieldDao().getPrjFieldBean(fieldid);
+		String iscommon = pfb.getIscommon();
+		String fieldname = pfb.getFieldname();
+		if(!"".equals(fieldname)){
+			if("0".equals(iscommon)){
+				sql="select "+fieldname+" from hs_projectinfo where id="+prjid;
+			}else{
+				sql="select "+fieldname+" from hs_project_fielddata where prjid="+prjid;
+			}
+			rs.executeSql(sql);
+			if(rs.next()){
+				fieldValue = Util.null2String(rs.getString(fieldname));
+			}
+		}
+		return fieldValue;
+	}
 }

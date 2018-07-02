@@ -8,11 +8,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.dc.engine.core.f;
-import com.ibm.db2.jcc.am.t;
-
 import weaver.conn.ConnStatement;
 import weaver.conn.RecordSet;
+import weaver.general.BaseBean;
 import weaver.general.Util;
 
 public class ProjectInfoImpl {
@@ -93,7 +91,8 @@ public class ProjectInfoImpl {
 		 * @param pidDefMap
 		 * @param prjid
 		 */
-		public void editProjectInfo(Map<String, String> pidComMap,Map<String, String> pidDefMap,String prjid,String userid){
+		public void editProjectInfo(Map<String, String> pidComMap,Map<String, String> pidDefMap,String prjid,String userid,String editType){
+			BaseBean log = new BaseBean();
 			RecordSet rs = new RecordSet();
 			SysnoUtil su = new SysnoUtil();
 			InsertUtil iu = new InsertUtil();
@@ -105,7 +104,19 @@ public class ProjectInfoImpl {
 			Map<String, String> oldDefMap = new HashMap<String, String>();
 			oldComMap = getOldValueMap(prjid,pidComMap,"0");
 			iu.updateGen(pidComMap, "hs_projectinfo", "id", prjid);
-
+			if("1".equals(editType)){//部门对接人编辑
+				String oldManager = Util.null2String(oldComMap.get("manager"));
+				String newManager = Util.null2String(pidComMap.get("manager"));
+				if(!oldManager.equals(newManager)){
+					SendEmail se = new SendEmail();
+					try {
+						se.SendEmailByChangePerson(prjid,userid,oldManager,newManager);
+					} catch (Exception e) {
+						log.writeLog("发送变更提醒邮件失败 prjid");
+						log.writeLog(e);
+					}
+				}
+			}
 			String belongdepart = "";
 
 			String belongCompany = "";

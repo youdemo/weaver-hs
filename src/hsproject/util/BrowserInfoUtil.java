@@ -37,7 +37,33 @@ public class BrowserInfoUtil {
 		
 		return result;
 	}
-	
+	public String getBrowserFieldValue2(String buttontype,String value) throws Exception{
+		//BaseBean log = new BaseBean();
+		String result="";
+		if("0".equals(buttontype)||"6".equals(buttontype)){
+			result=new ResourceComInfo().getMulResourcename(value);
+		}else if("1".equals(buttontype)||"7".equals(buttontype)){
+			result=getMulDepartname2(value);
+		}else if("2".equals(buttontype)||"3".equals(buttontype)){
+			result = value;
+		}else if("4".equals(buttontype)){
+			result= getWorkflowNames(value);
+		}else if("5".equals(buttontype)){
+			result = getProjectType(value);
+		}else if("8".equals(buttontype)){
+			result = getProcessType(value);
+		}else if("9".equals(buttontype)){
+			result = getStatusName(value);
+		}else if("10".equals(buttontype)||"11".equals(buttontype)){
+			result=getMulSubCompanyName(value);
+		}else if("12".equals(buttontype)){
+			result=getMulDocName(value);
+		}else if("13".equals(buttontype)){
+			result = new ProjectInfoDao().getPrjName(value);
+		}
+		
+		return result;
+	}
 	public String getLinkUrl(String buttontype){
 		String linkUrl="";
 		if("0".equals(buttontype)){//人力资源
@@ -81,7 +107,7 @@ public class BrowserInfoUtil {
 		}else if("2".equals(buttontype)){//日期
 			completeUrl="";
 		}else if("3".equals(buttontype)){//时间
-			completeUrl="";
+			completeUrl=""; 
 		}else if("4".equals(buttontype)){//流程
 			completeUrl="/data.jsp?type=16";
 		}else if("5".equals(buttontype)){//项目类型
@@ -200,7 +226,7 @@ public class BrowserInfoUtil {
 						if("".equals(requestUrl)){
 							requestUrl = "<a href=\"javascript:openFullWindowForXtable('/workflow/request/ViewRequest.jsp?requestid="+value+"')\">"+requestName+"</a>";
 		    			}else{
-		    				requestUrl = requestUrl + flag +"<a href=\"javascript:openFullWindowForXtable('/workflow/request/ViewRequest.jsp?requestid="+value+"')\">"+requestName+"</a>";;
+		    				requestUrl = requestUrl + flag +"<a href=\"javascript:openFullWindowForXtable('/workflow/request/ViewRequest.jsp?requestid="+value+"')\">"+requestName+"</a>";
 		    			}
 					}			
 				}			
@@ -214,6 +240,42 @@ public class BrowserInfoUtil {
 //		if(!"".equals(requestName)){
 //			requestUrl = "<a href=\"javascript:openFullWindowForXtable('/workflow/request/ViewRequest.jsp?requestid="+value+"')\">"+requestName+"</a>";
 //		}
+		return requestUrl;
+	}
+	
+	/**
+	 * 流程名称
+	 * @param value
+	 * @return
+	 */
+	public String getWorkflowNames(String value){
+		RecordSet rs = new RecordSet();
+		String requestName = "";
+		String requestUrl = "";
+		String sql = "";
+		String flag=" ";
+		if(!"".equals(value)){
+			String requestArr[] = value.split(",");
+			for(int i =0;i<requestArr.length;i++){
+				String requestValue = requestArr[i];
+				requestName = "";
+				if(!"".equals(requestValue)){
+					sql="select * from workflow_requestbase where requestid="+requestValue;
+					rs.executeSql(sql);
+					if(rs.next()){
+						requestName = Util.null2String(rs.getString("requestName"));
+					}
+					if(!"".equals(requestName)){
+						if("".equals(requestUrl)){
+							requestUrl = requestName;
+		    			}else{
+		    				requestUrl = requestUrl + flag +requestName;
+		    			}
+					}			
+				}			
+			}
+		}
+
 		return requestUrl;
 	}
 	/**
@@ -243,7 +305,33 @@ public class BrowserInfoUtil {
 	    return departmentUrl;
 	   
 	  }
-	
+	/**
+	 * 多部门值
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public String getMulDepartname2(String value) throws Exception {
+	    String departmentUrl = "";
+	    String departmentvalue = "";
+	    DepartmentComInfo dci= new DepartmentComInfo();
+	    String flag=" ";
+	    if(!"".equals(value)){
+	    	String departArr[] = value.split(",");
+	    	for(int i =0;i<departArr.length;i++){
+	    		departmentvalue = departArr[i];
+	    		if(!"".equals(departmentvalue)){
+	    			if("".equals(departmentUrl)){
+	    				departmentUrl = dci.getDepartmentname(departmentvalue);
+	    			}else{
+	    				departmentUrl = departmentUrl + flag +dci.getDepartmentname(departmentvalue);
+	    			}
+	    		}
+	    	} 
+	    }	      
+	    return departmentUrl;
+	   
+	  }
 	public String getMulSubCompany(String value) throws Exception {
 	    String subCompanyUrl = "";
 	    String subCompanyvalue = "";
@@ -258,6 +346,33 @@ public class BrowserInfoUtil {
 	    				subCompanyUrl = "<a href=\"javascript:openFullWindowForXtable('/hrm/company/HrmSubCompanyDsp.jsp?id="+subCompanyvalue+"')\">"+scc.getSubCompanyname(subCompanyvalue)+"</a>";
 	    			}else{
 	    				subCompanyUrl = subCompanyUrl + flag +"<a href=\"javascript:openFullWindowForXtable('/hrm/company/HrmSubCompanyDsp.jsp?id="+subCompanyvalue+"')\">"+scc.getSubCompanyname(subCompanyvalue)+"</a>";
+	    			}
+	    		}
+	    	} 
+	    }	      
+	    return subCompanyUrl;
+	   
+	  }
+	/**
+	 * 获取多分部名称
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public String getMulSubCompanyName(String value) throws Exception {
+	    String subCompanyUrl = "";
+	    String subCompanyvalue = "";
+	    SubCompanyComInfo scc = new SubCompanyComInfo();
+	    String flag=" ";
+	    if(!"".equals(value)){
+	    	String subArr[] = value.split(",");
+	    	for(int i =0;i<subArr.length;i++){
+	    		subCompanyvalue = subArr[i];
+	    		if(!"".equals(subCompanyvalue)){
+	    			if("".equals(subCompanyUrl)){
+	    				subCompanyUrl = scc.getSubCompanyname(subCompanyvalue);
+	    			}else{
+	    				subCompanyUrl = subCompanyUrl + flag +scc.getSubCompanyname(subCompanyvalue);
 	    			}
 	    		}
 	    	} 
@@ -280,6 +395,33 @@ public class BrowserInfoUtil {
 	    				docUrl = "<a href=\"javascript:openFullWindowForXtable('/docs/docs/DocDsp.jsp?isrequest=1&amp;id="+docvalue+"')\">"+dci.getDocname(docvalue)+"</a>";
 	    			}else{
 	    				docUrl = docUrl + flag +"<a href=\"javascript:openFullWindowForXtable('/docs/docs/DocDsp.jsp?isrequest=1&amp;id="+docvalue+"')\">"+dci.getDocname(docvalue)+"</a>";
+	    			}
+	    		}
+	    	} 
+	    }	      
+	    return docUrl;
+	   
+	  }
+	/**
+	 * 获取多文档名称
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	public String getMulDocName(String value) throws Exception {
+	    String docUrl = "";
+	    String docvalue = "";
+	    DocComInfo dci = new DocComInfo();
+	    String flag=" ";
+	    if(!"".equals(value)){
+	    	String docArr[] = value.split(",");
+	    	for(int i =0;i<docArr.length;i++){
+	    		docvalue = docArr[i];
+	    		if(!"".equals(docvalue)){
+	    			if("".equals(docUrl)){
+	    				docUrl = dci.getDocname(docvalue);
+	    			}else{
+	    				docUrl = docUrl + flag +dci.getDocname(docvalue);
 	    			}
 	    		}
 	    	} 

@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import weaver.docs.docs.DocComInfo;
 import weaver.hrm.resource.ResourceComInfo;
 
 public class Test {

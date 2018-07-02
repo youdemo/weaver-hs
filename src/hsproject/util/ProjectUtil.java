@@ -58,6 +58,8 @@ public class ProjectUtil {
 		sqlWhere.append("  or exists ( select 1 from ").append(str3).append(" t2 where t2.id =t1.manager ) ");
 	    sqlWhere.append("  or exists(select 1 from uf_project_type t2 where t2.id=t1.prjtype and t2.department='"+departmentid+"')");
 	    sqlWhere.append("  or exists(select 1 from uf_prj_departperson t2 where t2.department=t1.belongdepart and t2.person="+userid+")");
+	    sqlWhere.append("  or belongdepart in (select department from uf_prj_departperson where general='"+userid+"')");
+	    
 		sqlWhere.append(" )");
 		return sqlWhere.toString();
 	}

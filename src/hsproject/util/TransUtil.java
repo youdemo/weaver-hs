@@ -185,4 +185,16 @@ public class TransUtil {
 	    }
 	    return str;
 	}
+	
+	public String getPrjName(String id) throws Exception{
+		RecordSet rs = new RecordSet();
+		String name = "";
+		String sql="select name from hs_projectinfo where id="+id;
+		rs.executeSql(sql);
+		if(rs.next()){
+			name = Util.null2String(rs.getString("name"));
+		}
+	    
+	    return name;
+	}
 }

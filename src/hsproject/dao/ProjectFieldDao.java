@@ -134,7 +134,7 @@ public class ProjectFieldDao {
 		}
 		String sql = "select * from uf_project_field where id="+id;
 		rs.executeSql(sql);
-		while (rs.next()) {
+		if (rs.next()) {
 			
 			pfb.setId(Util.null2String(rs.getString("id")));
 			pfb.setPrjtype(Util.null2String(rs.getString("prjtype")));

@@ -58,7 +58,7 @@ public class PrjLogDao {
 	}
 	/**
 	 * 
-	 * @param logType 日志类型 0 新增 1修改
+	 * @param logType 日志类型 0 新增 1修改 2变更修改
 	 * @param type  类型 0 项目 1阶段
 	 * @param dataId 数据id 过程和项目的id
 	 * @param pidComMap 通用数据数组
