@@ -30,6 +30,8 @@ public class ChangeProjectInfo implements Action{
 		String oldvalue = "";
 		String newvalue = "";
 		String sysno = "";
+		String bgzds = "";//项目变更字段
+		String flag = "";
 		String sql = "select b.tablename from modeinfo a,workflow_bill b where a.formid=b.id and a.id="
 				+ modeId;
 		rs.executeSql(sql);
@@ -60,6 +62,8 @@ public class ChangeProjectInfo implements Action{
 			oldvalue =	pcdb.getOldvalue();
 			newvalue = pcdb.getNewvalue();
 			ProjectFieldBean pfb = pfd.getPrjFieldBean(prjfield);
+			bgzds=bgzds+flag+pfb.getShowname();
+			flag=",";
 			String fieldname = pfb.getFieldname();
 			String isCommon = pfb.getIscommon();
 			if("0".equals(isCommon)){
@@ -79,7 +83,7 @@ public class ChangeProjectInfo implements Action{
 		}
 		PrjLogDao pld = new PrjLogDao();
 		pld.writePrjLog("2", "0", prjid, comMap, defMap, oldComMap, oldDefMap, projecttype, operater);
-		sql="update "+tableName+" set isnew = '1' where id="+billId;
+		sql="update "+tableName+" set isnew = '1',bgzds='"+bgzds+"' where id="+billId;
 		rs.executeSql(sql);
 		return SUCCESS;
 	}

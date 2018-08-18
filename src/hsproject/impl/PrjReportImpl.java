@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import weaver.conn.RecordSet;
 import weaver.general.Util;
@@ -433,7 +435,7 @@ public class PrjReportImpl {
 			}
 
 		}
-		sql = "update uf_prj_all_reportmt set reporturl='/hsproject/project/report/hs-show-all-prj-report-Url.jsp?reportid="
+		sql = "update uf_prj_all_reportmt set reporturl='/hsproject/project/report/hs-show-prj-all-report-Url.jsp?reportid="
 				+ mainid + "' where id=" + mainid;
 		rs.executeSql(sql);
 
@@ -459,4 +461,14 @@ public class PrjReportImpl {
 		String result = vtm.doTrans(fieldid, value, "1");
 		return result;
 	}
+	 public  String removeHtmlTag(String content) {
+			Pattern p = Pattern.compile("<([a-zA-Z]+)[^<>]*>(.*?)</\\1>");
+			Matcher m = p.matcher(content);
+			if (m.find()) {
+				content = content
+						.replaceAll("<([a-zA-Z]+)[^<>]*>(.*?)</\\1>", "$2");
+				content = removeHtmlTag(content);
+			}
+			return content;
+		}
 }

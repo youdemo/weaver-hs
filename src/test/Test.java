@@ -20,6 +20,9 @@ public class Test {
 		StringBuffer xml = new StringBuffer();
 		xml.append("aaaa").append("\n").append("bbbb").append("vvv");
 		System.out.println(xml.toString());
+		if("2002-12-31".compareTo("2002-01-01")<0){
+			System.out.println("asd");
+		}
 	}
 	
 	public static Map<String,String> getFieldStr(String str){

@@ -1,25 +1,21 @@
 package hsproject.impl;
 
-import hsproject.bean.CptBusOutDataMtBean;
-import hsproject.bean.CptBusOutDataMtDtBean;
-import hsproject.bean.ProjectFieldBean;
-import hsproject.dao.ProjectFieldDao;
+import hsproject.bean.UsedMoneyOutDataMtBean;
 import hsproject.dao.ProjectInfoDao;
 import hsproject.util.InsertUtil;
-import hsproject.util.SysnoUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import weaver.conn.RecordSet;
 import weaver.conn.RecordSetDataSource;
+import weaver.formmode.setup.ModeRightInfo;
 import weaver.general.BaseBean;
 import weaver.general.Util;
 
-public class SysnCptBusOutDataImpl {
+public class SysnMoneyOutDataImpl {
 	BaseBean log = new BaseBean();
 
 	/**
@@ -31,25 +27,20 @@ public class SysnCptBusOutDataImpl {
 	 * @param min
 	 * @return
 	 */
-	public List<CptBusOutDataMtBean> getSysnMtIds(String month, String day,
+	public List<UsedMoneyOutDataMtBean> getSysnMtIds(String month, String day,
 			String hour) {
 		String sql = "";
 		String id = "";
 		String datasource = "";
-		String type = "";
 		String prjtype = "";
-
-		String sysfiled = "";
 		RecordSet rs = new RecordSet();
-		RecordSet rs_dt = new RecordSet();
-		String sql_dt = "";
 		BaseBean log = new BaseBean();
-		List<CptBusOutDataMtBean> list = new ArrayList<CptBusOutDataMtBean>();
+		List<UsedMoneyOutDataMtBean> list = new ArrayList<UsedMoneyOutDataMtBean>();
 		if ("".equals(month) || "".equals(day) || "".equals(hour)) {
 			return list;
 		}
 
-		sql = "select *  from uf_prj_syscptbus_mt where (month='" + month
+		sql = "select *  from uf_prj_sysmoney_mt where (month='" + month
 				+ "' or month='0') and (day='" + day
 				+ "' or day='0') and (hour='" + hour
 				+ "' or hour='0') and isused='1' ";
@@ -59,7 +50,6 @@ public class SysnCptBusOutDataImpl {
 		while (rs.next()) {
 			id = Util.null2String(rs.getString("id"));
 			datasource = Util.null2String(rs.getString("datasource"));
-			type = Util.null2String(rs.getString("type"));
 			prjtype = Util.null2String(rs.getString("prjtype"));
 			if (!checkExists("datasourcesetting", "id", datasource)) {
 				log.writeLog("该同步配置数据源错误 id:" + id + " datasource:"
@@ -70,57 +60,18 @@ public class SysnCptBusOutDataImpl {
 				log.writeLog("该同步配置错误 id:" + id + " prjtype:" + prjtype);
 				continue;
 			}
-			CptBusOutDataMtBean odmb = new CptBusOutDataMtBean();
-			List<CptBusOutDataMtDtBean> dtList = new ArrayList<CptBusOutDataMtDtBean>();
+
+			UsedMoneyOutDataMtBean odmb = new UsedMoneyOutDataMtBean();
 			odmb.setId(id);
 			odmb.setMark(Util.null2String(rs.getString("mark")));
 			odmb.setPrjtype(prjtype);
 			odmb.setDatasource(datasource);
-			odmb.setType(type);
 			odmb.setMapsql(Util.null2String(rs.getString("mapsql")));
 			odmb.setDescription(Util.null2String(rs.getString("description")));
 			odmb.setIsused(Util.null2String(rs.getString("isused")));
 			odmb.setMonth(Util.null2String(rs.getString("month")));
 			odmb.setDay(Util.null2String(rs.getString("day")));
 			odmb.setHour(Util.null2String(rs.getString("hour")));
-			odmb.setHalfhour(Util.null2String(rs.getString("halfhour")));
-			int count = 0;
-			sql_dt = "select count(1) as count from uf_prj_syscptbus_mt_dt1 where mainid="
-					+ id;
-			rs_dt.executeSql(sql_dt);
-			if (rs_dt.next()) {
-				count = rs_dt.getInt("count");
-			}
-			if (count <= 0) {
-				log.writeLog("该同步明细数量为空 id:" + id);
-				continue;
-			}
-			sql_dt = "select * from uf_prj_syscptbus_mt_dt1 where mainid=" + id;
-			rs_dt.executeSql(sql_dt);
-			while (rs_dt.next()) {
-				CptBusOutDataMtDtBean cbo = new CptBusOutDataMtDtBean();
-				cbo.setId(rs_dt.getString("id"));
-				cbo.setMainid(rs_dt.getString("mainid"));
-				cbo.setMapfield(rs_dt.getString("mapfield"));
-				cbo.setSysfiled(rs_dt.getString("sysfiled"));
-				dtList.add(cbo);
-			}
-			odmb.setDtList(dtList);
-			// if("0".equals(type)){
-			//
-			// if(!checkExists("uf_project_field","id",prjfield)){
-			// log.writeLog("该同步配置错误 id:"+id+" prjfield:"+prjfield);
-			// continue;
-			// }
-			// }else if("1".equals(type)){
-			// if(!checkExists("uf_prj_porcessfield","id",processfield)){
-			// log.writeLog("该同步配置错误 id:"+id+" processfield:"+processfield);
-			// continue;
-			// }
-			// }else{
-			// continue;
-			// }
-
 			list.add(odmb);
 		}
 		return list;
@@ -159,43 +110,40 @@ public class SysnCptBusOutDataImpl {
 	 * @param nowDate
 	 * @param nowTime
 	 */
-	public void sysnData(CptBusOutDataMtBean odmb, String nowDate,
+	public void sysnData(UsedMoneyOutDataMtBean odmb, String nowDate,
 			String nowTime) {
 		String dataSourceFlag = "";
 		RecordSet rs = new RecordSet();
 		String sql = "";
 		String fieldname = "";
 		String fieldvalue = "";
-		String sysnValue = "";
 		String datasource = odmb.getDatasource();
-		String type = odmb.getType();
 		String prjtype = odmb.getPrjtype();
 		String transql = odmb.getMapsql();
 		dataSourceFlag = getDataSourceFlag(datasource);
 		if ("".equals(dataSourceFlag)) {
-			log.writeLog("数据源标识找不到 datasource:" + datasource);
 			return;
 		}
-		Map<String, String> checkMap = checkMapSql(transql, type, prjtype);
+		Map<String, String> checkMap = checkMapSql(transql, prjtype);
 		String checkResult = checkMap.get("result");
 		String fieldNames = checkMap.get("fieldNames");
 		// log.writeLog("checkResult:"+checkResult);
 		// log.writeLog("fieldNames:"+fieldNames);
 		if ("-1".equals(checkResult)) {
-			log.writeLog("同步sql检查失败 transql:" + transql);
 			return;
 		}
 
 		String prjid = "";
+		String procode = "";
 		sql = "select * from hs_projectinfo where prjtype='" + prjtype + "'";
 		// log.writeLog(sql);
 		rs.executeSql(sql);
 		while (rs.next()) {
-			String mapsql = transql;
+			String mapsql=transql;
 			fieldname = "";
 			fieldvalue = "";
-			sysnValue = "";
 			prjid = Util.null2String(rs.getString("id"));
+			procode = Util.null2String(rs.getString("procode"));
 			// log.writeLog("prjid:"+prjid);
 			ProjectInfoDao pid = new ProjectInfoDao();
 			Map<String, String> pidComMap = pid.getProjetCommonData(prjid);
@@ -213,158 +161,95 @@ public class SysnCptBusOutDataImpl {
 				}
 				fieldname = "##" + fieldname + "##";
 				mapsql = mapsql.replace(fieldname, fieldvalue);
-
-			}
-			// log.writeLog("mapsql:"+mapsql);
-			if ("0".equals(type)) {
-				updateCptInfo(dataSourceFlag, mapsql, prjid, odmb);
-			} else {
-				updateBusInfo(dataSourceFlag, mapsql, prjid, odmb);
-			}
-
-		}
-
-	}
-	
-	/**
-	 * 更新项目固定资产数据
-	 * @param dataSourceFlag
-	 * @param mapsql
-	 * @param prjid
-	 * @param odmb
-	 */
-	public void updateCptInfo(String dataSourceFlag, String mapsql,
-			String prjid, CptBusOutDataMtBean odmb) {
-		RecordSet rs = new RecordSet();
-		RecordSetDataSource rsd = new RecordSetDataSource(dataSourceFlag);
-		SysnoUtil su = new SysnoUtil();
-		InsertUtil iu = new InsertUtil();
-		String sql = mapsql;
-		String sql_dt = "";
-		//log.writeLog("sql:"+sql);
-		rsd.executeSql(sql);
-		if(rsd.next()){
-			sql_dt = "update hs_prj_cptinfo set issys='1' where prjid="+prjid;
-		
-			rs.executeSql(sql_dt);
-		}
-		List<CptBusOutDataMtDtBean> list = odmb.getDtList();
-		rsd.executeSql(sql);
-		while(rsd.next()){
-			Map<String, String> map = new HashMap<String,String>();
-			for(CptBusOutDataMtDtBean dbo:list){
-				String fieldName=getSysFieldName(dbo.getSysfiled());
-				if(!"".equals(fieldName)){
-					String value = "";
-					value = Util.null2String(rsd.getString(dbo.getMapfield()));
-					map.put(fieldName, value);
-				}
 				
 			}
+		    log.writeLog("mapsql:"+mapsql);
+		    String billid=getUsedMoneyid(prjid,procode);
+		    if(!"".equals(billid)){
+		    	updateInfo(dataSourceFlag,mapsql,billid,prjid);
+		    }
+		}
 
-			String whereSql=" prjid='"+prjid+"' ";
-			Iterator<String> it = map.keySet().iterator();
-			while (it.hasNext()) {
-				String key=it.next();
-				String value=map.get(key);
-				whereSql += "and "+key+"='"+value+"'";
-			}
-			String cptid="";
-			sql_dt="select id from hs_prj_cptinfo where "+whereSql;
-			//log.writeLog("sql_dt:"+sql_dt);
-			rs.executeSql(sql_dt);
-			if(rs.next()){
-				cptid = Util.null2String(rs.getString("id"));
-			}
-			if(!"".equals(cptid)){
-				sql_dt = "update hs_prj_cptinfo set issys='0' where id="+cptid;
-				rs.executeSql(sql_dt);
-				continue;
-			}else{
-				String nextNo = su.getTableMaxId("hs_prj_cptinfo");
-				map.put("id", nextNo);
-				map.put("prjid", prjid);
-				map.put("issys", "0");
-				iu.insert(map, "hs_prj_cptinfo");
-			}
-		}
-		sql_dt="delete from hs_prj_cptinfo where issys='1' and prjid="+prjid;
-		rs.executeSql(sql_dt);
 	}
-	/**
-	 * 同步商务信息
-	 * @param dataSourceFlag
-	 * @param mapsql
-	 * @param prjid
-	 * @param odmb
-	 */
-	public void updateBusInfo(String dataSourceFlag, String mapsql,
-			String prjid, CptBusOutDataMtBean odmb) {
-		RecordSet rs = new RecordSet();
-		RecordSetDataSource rsd = new RecordSetDataSource(dataSourceFlag);
-		SysnoUtil su = new SysnoUtil();
-		InsertUtil iu = new InsertUtil();
-		String sql = mapsql;
-		String sql_dt = "";
-		//log.writeLog("sql:"+sql);
-		rsd.executeSql(sql);
-		if(rsd.next()){
-			sql_dt = "update hs_prj_businfo set issys='1' where prjid="+prjid;
-		
-			rs.executeSql(sql_dt);
-		}
-		List<CptBusOutDataMtDtBean> list = odmb.getDtList();
-		rsd.executeSql(sql);
-		while(rsd.next()){
-			Map<String, String> map = new HashMap<String,String>();
-			for(CptBusOutDataMtDtBean dbo:list){
-				String fieldName=getSysFieldName(dbo.getSysfiled());
-				if(!"".equals(fieldName)){
-					String value = "";
-					value = Util.null2String(rsd.getString(dbo.getMapfield()));
-					map.put(fieldName, value);
-				}
-				
-			}
 
-			String whereSql=" prjid='"+prjid+"' ";
-			Iterator<String> it = map.keySet().iterator();
-			while (it.hasNext()) {
-				String key=it.next();
-				String value=map.get(key);
-				whereSql += "and "+key+"='"+value+"'";
-			}
-			String cptid="";
-			sql_dt="select id from hs_prj_businfo where "+whereSql;
-			rs.executeSql(sql_dt);
-			if(rs.next()){
-				cptid = Util.null2String(rs.getString("id"));
-			}
-			if(!"".equals(cptid)){
-				sql_dt = "update hs_prj_businfo set issys='0' where id="+cptid;
-				rs.executeSql(sql_dt);
-				continue;
-			}else{
-				String nextNo = su.getTableMaxId("hs_prj_businfo");
-				map.put("id", nextNo);
-				map.put("prjid", prjid);
-				map.put("issys", "0");
-				iu.insert(map, "hs_prj_businfo");
-			}
-		}
-		sql_dt="delete from hs_prj_businfo where issys='1' and prjid="+prjid;
-		rs.executeSql(sql_dt);
-	}
-	
-	public String getSysFieldName(String id){
+	public String getUsedMoneyid(String prjid,String procode){
 		RecordSet rs = new RecordSet();
-		String fieldName = "";
-		String sql = "select fieldname from uf_prj_cptbus_field where id="+id;
+		String tablename = "uf_prj_usedmoney";
+		String formid = "";
+		String modeid = "";
+		String billid = "";
+		String sql = "select id from workflow_bill where tablename='"+tablename+"'";
 		rs.executeSql(sql);
 		if(rs.next()){
-			fieldName = Util.null2String(rs.getString("fieldname"));
+			formid = Util.null2String(rs.getString("id"));
 		}
-		return fieldName;
+		sql="select id from modeinfo where  formid="+formid;
+		rs.executeSql(sql);
+		if(rs.next()){
+			modeid = Util.null2String(rs.getString("id"));
+		}
+		sql="select * from "+tablename+" where prjid='"+prjid+"'";
+		rs.executeSql(sql);
+		if(rs.next()){
+			billid = Util.null2String(rs.getString("id"));
+		}
+		if("".equals(billid)){
+			InsertUtil iu = new InsertUtil();
+			Map<String, String> mapStr = new HashMap<String, String>();
+			mapStr.put("prjid", prjid);
+			mapStr.put("prjcode", procode);
+			mapStr.put("modedatacreater", "1");
+			mapStr.put("modedatacreatertype", "0");
+			mapStr.put("formmodeid", modeid);
+			iu.insert(mapStr, tablename);
+			sql = "select id from " + tablename + " where prjid='" +prjid+ "'";
+			rs.executeSql(sql);			
+			if (rs.next()) {
+				billid = Util.null2String(rs.getString("id"));			
+			}
+			if (!"".equals(billid)) {
+				ModeRightInfo ModeRightInfo = new ModeRightInfo();
+				ModeRightInfo.editModeDataShare(Integer.valueOf("1"), Integer.valueOf(modeid),
+						Integer.valueOf(billid));
+			}
+		}
+		return billid;
+		
+	}
+
+	
+	public void updateInfo(String dataSourceFlag,
+			String mapsql,String billid,String prjid) {
+		RecordSet rs = new RecordSet();
+		RecordSetDataSource rsd = new RecordSetDataSource(dataSourceFlag);
+		String sql = mapsql;
+		String sql_dt = "";
+		String usedmoney = "";
+		String year = "";
+		String dtid = "";
+		rsd.executeSql(sql);
+		while(rsd.next()){
+			dtid ="";
+			year = Util.null2String(rsd.getString("year"));
+			usedmoney = Util.null2String(rsd.getString("usedmoney"));
+			sql_dt = "select id from uf_prj_usedmoney_dt1 where mainid="+billid+" and year='"+year+"'";
+			rs.executeSql(sql_dt);
+			if(rs.next()){
+				dtid = Util.null2String(rs.getString("id"));
+			}
+			if("".equals(dtid)){
+				sql_dt = "insert into uf_prj_usedmoney_dt1(mainid,year,usedmoney) values('"+billid+"','"+year+"','"+usedmoney+"')";
+				rs.executeSql(sql_dt);
+			}else{
+				sql_dt = "update uf_prj_usedmoney_dt1 set usedmoney='"+usedmoney+"' where id="+dtid;
+				rs.executeSql(sql_dt);
+			}
+		}
+		
+		sql_dt = "update hs_projectinfo set prjamount=(select nvl(sum(nvl(usedmoney,0)),0) from uf_prj_usedmoney_dt1 where mainid="+billid+") where id="+prjid;
+		rs.executeSql(sql_dt);
+		
+		
 	}
 
 	/**
@@ -389,14 +274,10 @@ public class SysnCptBusOutDataImpl {
 	 * 检查sql条件字段是否正确
 	 * 
 	 * @param mapSql
-	 * @param type
 	 * @param prjtype
-	 * @param processtype
-	 * @param mapfield
 	 * @return
 	 */
-	public Map<String, String> checkMapSql(String mapSql, String type,
-			String prjtype) {
+	public Map<String, String> checkMapSql(String mapSql, String prjtype) {
 		String tranSql = mapSql;
 		boolean flag = true;
 		boolean checkResult = true;
@@ -407,7 +288,11 @@ public class SysnCptBusOutDataImpl {
 		int index = 0;
 		Map<String, String> resultMap = new HashMap<String, String>();
 		str = mapSql;
-
+		if (tranSql.indexOf("year") < 0 || tranSql.indexOf("usedmoney") < 0) {
+			resultMap.put("fieldNames", fieldNames);
+			resultMap.put("result", "-1");
+			return resultMap;
+		}
 		while (flag) {
 			str = str.substring(index, str.length());
 			Map<String, String> map = getFieldStr(str);
@@ -431,7 +316,8 @@ public class SysnCptBusOutDataImpl {
 						flag = false;
 					}
 				} else {
-					if (!checkFieldExists("0", prjtype, fieldname)) {
+					if (!checkFieldExists("0", prjtype,
+							fieldname)) {
 						checkResult = false;
 						flag = false;
 					}

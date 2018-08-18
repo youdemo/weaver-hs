@@ -152,7 +152,7 @@ public class SysnOutDataImpl {
 		String type =odmb.getType();
 		String mapfield = odmb.getMapfield();
 		String prjtype = odmb.getPrjtype();
-		String mapsql = odmb.getMapsql();		
+		String transql = odmb.getMapsql();		
 		ProjectFieldBean pfb= new ProjectFieldDao().getPrjFieldBean(prjfield);
 		ProcessFieldBean psfb = new ProcessFieldDao().getProcessFieldBean(processfield);
 		dataSourceFlag = getDataSourceFlag(datasource);
@@ -160,7 +160,7 @@ public class SysnOutDataImpl {
 			odld.writeLog(odmb.getId(),type,"", "", "", "", "", "", "", "", nowDate, nowTime, "数据源标识找不到", "1");
 			return;
 		}
-		Map<String,String> checkMap=checkMapSql(mapsql,type,prjtype,processtype,mapfield);
+		Map<String,String> checkMap=checkMapSql(transql,type,prjtype,processtype,mapfield);
 		String checkResult = checkMap.get("result");
 		String fieldNames = checkMap.get("fieldNames");
 		//log.writeLog("checkResult:"+checkResult);
@@ -176,6 +176,7 @@ public class SysnOutDataImpl {
 			//log.writeLog(sql);
 			rs.executeSql(sql);
 			while(rs.next()){
+				String mapsql=transql;
 				fieldname = "";
 				fieldvalue = "";
 				sysnValue = "";
@@ -214,6 +215,7 @@ public class SysnOutDataImpl {
 			sql="select * from hs_prj_process where prjtype='"+prjtype+"' and processtype='"+processtype+"'";
 			rs.executeSql(sql);
 			while(rs.next()){
+				String mapsql=transql;
 				fieldname = "";
 				fieldvalue = "";
 				sysnValue = "";

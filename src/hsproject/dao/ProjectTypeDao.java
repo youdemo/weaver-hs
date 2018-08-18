@@ -3,7 +3,9 @@ package hsproject.dao;
 import hsproject.bean.ProjectTypeBean;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import weaver.conn.RecordSet;
 import weaver.general.Util;
@@ -13,10 +15,10 @@ public class ProjectTypeDao {
 	 * 获取启用项目类型
 	 * @return
 	 */
-	public List<ProjectTypeBean> getUsedProjectType(){
+	public List<ProjectTypeBean> getUsedProjectType(String subid){
 		List<ProjectTypeBean> list = new ArrayList<ProjectTypeBean>();
 		RecordSet rs = new RecordSet();
-		String sql="select * from uf_project_type where isused='1' order by dsporder asc";
+		String sql="select * from uf_project_type where isused='1' and subcompany='"+subid+"' order by dsporder asc";
 		rs.executeSql(sql);
 		while(rs.next()){
 			ProjectTypeBean ptb = new ProjectTypeBean();
@@ -38,10 +40,13 @@ public class ProjectTypeDao {
 		return list;
 	}
 	
-	public List<ProjectTypeBean> getUsedProjectType(String department){
+	public List<ProjectTypeBean> getUsedProjectType(String department,String subid){
 		List<ProjectTypeBean> list = new ArrayList<ProjectTypeBean>();
+		if("".equals(department)){
+			return list;
+		}
 		RecordSet rs = new RecordSet();
-		String sql="select * from uf_project_type where isused='1' and department='"+department+"' order by dsporder asc";
+		String sql="select * from uf_project_type where isused='1' and department in("+department+") and subcompany='"+subid+"' order by dsporder asc";
 		rs.executeSql(sql);
 		while(rs.next()){
 			ProjectTypeBean ptb = new ProjectTypeBean();
@@ -90,6 +95,30 @@ public class ProjectTypeDao {
 		}
 		return list;
 	}
+	
+	/**
+	 * 获取项目类型公司集合
+	 * @return
+	 */
+	public List<Map<String,String>> getPrjTypeCompany(){
+		RecordSet rs = new RecordSet();
+		List<Map<String,String>> list = new ArrayList<Map<String,String>>();
+		String subcompanyid = "";
+		String subcompanyname = "";
+		String sql = "select distinct b.id,b.subcompanyname from uf_project_type a,hrmsubcompany b  where a.subcompany=b.id ";
+		rs.executeSql(sql);
+		while(rs.next()){
+			Map<String, String> map = new HashMap<String, String>();
+			subcompanyid = Util.null2String(rs.getString("id"));
+			subcompanyname = Util.null2String(rs.getString("subcompanyname"));
+			map.put("subcompanyid", subcompanyid);
+			map.put("subcompanyname", subcompanyname);
+			list.add(map);
+		}
+		return list;
+		
+	}
+	
 	/**
 	 * 根据id获取类型名
 	 * @param typeid

@@ -1,17 +1,9 @@
 package hsproject.bean;
 
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * @author tangj
- *
- */
-public class CptBusOutDataMtBean {
+public class UsedMoneyOutDataMtBean {
 	private String id = "";
 	private String mark = "";//标识
 	private String datasource = "";//数据源
-	private String type = "";//同步类型 0 固定资产 1 商务信息
 	private String prjtype = "";//项目类型
 	private String mapsql = "";//转换sql
 	private String description = "";//描述
@@ -19,8 +11,7 @@ public class CptBusOutDataMtBean {
 	private String month = "";//月
 	private String day = "";//日
 	private String hour = "";//时
-	private String halfhour = "";//半小时	
-	private List<CptBusOutDataMtDtBean> dtList = new ArrayList<CptBusOutDataMtDtBean>();
+	private String halfhour = "";//半小时
 	
 	public String getId() {
 		return id;
@@ -41,13 +32,7 @@ public class CptBusOutDataMtBean {
 	public void setDatasource(String datasource) {
 		this.datasource = datasource;
 	}
-	
-	public String getType() {
-		return type;
-	}
-	public void setType(String type) {
-		this.type = type;
-	}
+
 	public String getPrjtype() {
 		return prjtype;
 	}
@@ -95,12 +80,6 @@ public class CptBusOutDataMtBean {
 	}
 	public void setHalfhour(String halfhour) {
 		this.halfhour = halfhour;
-	}
-	public List<CptBusOutDataMtDtBean> getDtList() {
-		return dtList;
-	}
-	public void setDtList(List<CptBusOutDataMtDtBean> dtList) {
-		this.dtList = dtList;
 	}
 	
 	

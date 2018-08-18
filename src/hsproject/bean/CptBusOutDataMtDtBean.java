@@ -8,15 +8,28 @@ public class CptBusOutDataMtDtBean {
 	public String getId() {
 		return id;
 	}
+	public void setId(String id) {
+		this.id = id;
+	}
 	public String getMainid() {
 		return mainid;
+	}
+	public void setMainid(String mainid) {
+		this.mainid = mainid;
 	}
 	public String getSysfiled() {
 		return sysfiled;
 	}
+	public void setSysfiled(String sysfiled) {
+		this.sysfiled = sysfiled;
+	}
 	public String getMapfield() {
 		return mapfield;
 	}
+	public void setMapfield(String mapfield) {
+		this.mapfield = mapfield;
+	}
+	
 	
 	
 }

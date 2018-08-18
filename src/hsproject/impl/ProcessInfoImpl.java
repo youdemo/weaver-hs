@@ -135,9 +135,11 @@ public class ProcessInfoImpl {
 	 */
 	public void updatePrjStatus(String prjid,String processType,String processid,String prjtype){
 		RecordSet rs = new RecordSet();
+		RecordSet rs_dt = new RecordSet();
 		String id = "";
 		String processname="";
 		String sql="";
+		String sql_dt = "";
 		String nextstatus="";
 		String flag="";
 		sql="select id,processname from uf_prj_process where prjtype='"+prjtype+"' and isused='1' order by dsporder asc,id asc";
@@ -145,7 +147,15 @@ public class ProcessInfoImpl {
 		while(rs.next()){
 			id = Util.null2String(rs.getString("id"));
 			processname = Util.null2String(rs.getString("processname"));
-
+			int count =0;
+			sql_dt = "select COUNT(1) as count from hs_prj_process where prjid='"+prjid+"' and processtype='"+id+"'";
+			rs_dt.executeSql(sql_dt);
+			if(rs_dt.next()){
+				count = rs_dt.getInt("count");
+			}
+			if(count == 0){
+				continue;
+			}
 			if("1".equals(flag)){
 				nextstatus = processname;
 				break;

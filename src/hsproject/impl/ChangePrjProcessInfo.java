@@ -30,6 +30,8 @@ public class ChangePrjProcessInfo implements Action{
 		String newvalue = "";
 		String processid = "";
 		String processtype = "";
+		String bgzds = "";//
+		String flag = "";
 		String sysno = "";
 		String sql = "select b.tablename from modeinfo a,workflow_bill b where a.formid=b.id and a.id="
 				+ modeId;
@@ -61,6 +63,8 @@ public class ChangePrjProcessInfo implements Action{
 			oldvalue =	pcdb.getOldvalue();
 			newvalue = pcdb.getNewvalue();
 			ProcessFieldBean pfb = pfd.getProcessFieldBean(processfield);
+			bgzds=bgzds+flag+pfb.getShowname();
+			flag=",";
 			String fieldname = pfb.getFieldname();
 			String isCommon = pfb.getIscommon();
 			if("0".equals(isCommon)){
@@ -80,7 +84,7 @@ public class ChangePrjProcessInfo implements Action{
 		}
 		PrjLogDao pld = new PrjLogDao();
 		pld.writePrjLog("2", "1", processid, comMap, defMap, oldComMap, oldDefMap, processtype, operater);
-		sql="update "+tableName+" set isnew = '1' where id="+billId;
+		sql="update "+tableName+" set isnew = '1',bgzds='"+bgzds+"' where id="+billId;
 		rs.executeSql(sql);
 		return SUCCESS;
 	}

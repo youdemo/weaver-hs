@@ -46,8 +46,9 @@ public class ProjectUtil {
 		}
 
 		String departmentid=getDepartmentId(userid);
+		String supdepid = getSupperDepartmentId(departmentid);
 		sqlWhere.append("( ");
-		sqlWhere.append(" t1.manager='"+userid+"' or ','+t1.members+',' like '%,"+userid+",%' ");
+		sqlWhere.append(" t1.manager='"+userid+"' or ','||t1.members||',' like '%,"+userid+",%' ");
 		String str2 = new StringBuilder().append("getchilds(").append(userid).append(")").toString();
 	    String str3 = new StringBuilder().append("getchilds_v(").append(userid).append(")").toString();
 	    if ("oracle".equalsIgnoreCase(rs.getDBType())) {
@@ -56,7 +57,7 @@ public class ProjectUtil {
 	    }
 	    sqlWhere.append("  or exists ( select 1 from ").append(str2).append(" t2 where t2.id =t1.manager ) ");
 		sqlWhere.append("  or exists ( select 1 from ").append(str3).append(" t2 where t2.id =t1.manager ) ");
-	    sqlWhere.append("  or exists(select 1 from uf_project_type t2 where t2.id=t1.prjtype and t2.department='"+departmentid+"')");
+	    sqlWhere.append("  or exists(select 1 from uf_project_type t2 where t2.id=t1.prjtype and t2.department in ('"+departmentid+"','"+supdepid+"'))");
 	    sqlWhere.append("  or exists(select 1 from uf_prj_departperson t2 where t2.department=t1.belongdepart and t2.person="+userid+")");
 	    sqlWhere.append("  or belongdepart in (select department from uf_prj_departperson where general='"+userid+"')");
 	    
@@ -77,5 +78,31 @@ public class ProjectUtil {
 		}else{
 			return "0";
 		}
+	}
+	
+	public String getSupperDepartmentId(String departmentid){
+		RecordSet rs = new RecordSet();
+		String sql = "";
+		String superid = departmentid;
+		String supdepid = "";
+		boolean flag = true;
+		if("".equals(departmentid)){
+			return "";
+		}
+		while(flag){
+			supdepid = "";
+			sql="select supdepid from hrmdepartment where id="+superid;
+			rs.executeSql(sql);
+			if(rs.next()){
+				supdepid = Util.null2String(rs.getString("supdepid"));				
+			}
+			if("".equals(supdepid)||"0".equals(supdepid)){
+				flag = false;
+				break;
+			}
+			superid = supdepid;
+		}
+		
+		return superid;
 	}
 }
