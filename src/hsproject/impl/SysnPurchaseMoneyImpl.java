@@ -1,5 +1,6 @@
 package hsproject.impl;
 
+import hsproject.bean.PurchaseMoneyMtBean;
 import hsproject.bean.UsedMoneyOutDataMtBean;
 import hsproject.dao.ProjectInfoDao;
 import hsproject.util.InsertUtil;
@@ -15,7 +16,7 @@ import weaver.formmode.setup.ModeRightInfo;
 import weaver.general.BaseBean;
 import weaver.general.Util;
 
-public class SysnMoneyOutDataImpl {
+public class SysnPurchaseMoneyImpl {
 	BaseBean log = new BaseBean();
 
 	/**
@@ -27,7 +28,7 @@ public class SysnMoneyOutDataImpl {
 	 * @param min
 	 * @return
 	 */
-	public List<UsedMoneyOutDataMtBean> getSysnMtIds(String month, String day,
+	public List<PurchaseMoneyMtBean> getSysnMtIds(String month, String day,
 			String hour) {
 		String sql = "";
 		String id = "";
@@ -35,12 +36,12 @@ public class SysnMoneyOutDataImpl {
 		String prjtype = "";
 		RecordSet rs = new RecordSet();
 		BaseBean log = new BaseBean();
-		List<UsedMoneyOutDataMtBean> list = new ArrayList<UsedMoneyOutDataMtBean>();
+		List<PurchaseMoneyMtBean> list = new ArrayList<PurchaseMoneyMtBean>();
 		if ("".equals(month) || "".equals(day) || "".equals(hour)) {
 			return list;
 		}
 
-		sql = "select *  from uf_prj_sysmoney_mt where (month='" + month
+		sql = "select *  from uf_prj_syspur_mt where (month='" + month
 				+ "' or month='0') and (day='" + day
 				+ "' or day='0') and (hour='" + hour
 				+ "' or hour='0') and isused='1' ";
@@ -50,21 +51,16 @@ public class SysnMoneyOutDataImpl {
 		while (rs.next()) {
 			id = Util.null2String(rs.getString("id"));
 			datasource = Util.null2String(rs.getString("datasource"));
-			prjtype = Util.null2String(rs.getString("prjtype"));
 			if (!checkExists("datasourcesetting", "id", datasource)) {
 				log.writeLog("该同步配置数据源错误 id:" + id + " datasource:"
 						+ datasource);
 				continue;
 			}
-			if (!checkExists("uf_project_type", "id", prjtype)) {
-				log.writeLog("该同步配置错误 id:" + id + " prjtype:" + prjtype);
-				continue;
-			}
+			
 
-			UsedMoneyOutDataMtBean odmb = new UsedMoneyOutDataMtBean();
+			PurchaseMoneyMtBean odmb = new PurchaseMoneyMtBean();
 			odmb.setId(id);
 			odmb.setMark(Util.null2String(rs.getString("mark")));
-			odmb.setPrjtype(prjtype);
 			odmb.setDatasource(datasource);
 			odmb.setMapsql(Util.null2String(rs.getString("mapsql")));
 			odmb.setDescription(Util.null2String(rs.getString("description")));
@@ -110,7 +106,7 @@ public class SysnMoneyOutDataImpl {
 	 * @param nowDate
 	 * @param nowTime
 	 */
-	public void sysnData(UsedMoneyOutDataMtBean odmb, String nowDate,
+	public void sysnData(PurchaseMoneyMtBean odmb, String nowDate,
 			String nowTime) {
 		String dataSourceFlag = "";
 		RecordSet rs = new RecordSet();
@@ -118,13 +114,12 @@ public class SysnMoneyOutDataImpl {
 		String fieldname = "";
 		String fieldvalue = "";
 		String datasource = odmb.getDatasource();
-		String prjtype = odmb.getPrjtype();
 		String transql = odmb.getMapsql();
 		dataSourceFlag = getDataSourceFlag(datasource);
 		if ("".equals(dataSourceFlag)) {
 			return;
 		}
-		Map<String, String> checkMap = checkMapSql(transql, prjtype);
+		Map<String, String> checkMap = checkMapSql(transql);
 		String checkResult = checkMap.get("result");
 		String fieldNames = checkMap.get("fieldNames");
 		// log.writeLog("checkResult:"+checkResult);
@@ -135,7 +130,7 @@ public class SysnMoneyOutDataImpl {
 
 		String prjid = "";
 		String procode = "";
-		sql = "select * from hs_projectinfo where prjtype='" + prjtype + "'";
+		sql = "select * from hs_projectinfo ";
 		// log.writeLog(sql);
 		rs.executeSql(sql);
 		while (rs.next()) {
@@ -163,90 +158,59 @@ public class SysnMoneyOutDataImpl {
 				mapsql = mapsql.replace(fieldname, fieldvalue);
 				
 			}
+			updateOrInsertInfo(dataSourceFlag,mapsql,prjid);
 		    //log.writeLog("mapsql:"+mapsql);
-		    String billid=getUsedMoneyid(prjid,procode);
-		    if(!"".equals(billid)){
-		    	updateInfo(dataSourceFlag,mapsql,billid,prjid);
-		    }
+		   
 		}
 
-	}
-
-	public String getUsedMoneyid(String prjid,String procode){
-		RecordSet rs = new RecordSet();
-		String tablename = "uf_prj_usedmoney";
-		String formid = "";
-		String modeid = "";
-		String billid = "";
-		String sql = "select id from workflow_bill where tablename='"+tablename+"'";
-		rs.executeSql(sql);
-		if(rs.next()){
-			formid = Util.null2String(rs.getString("id"));
-		}
-		sql="select id from modeinfo where  formid="+formid;
-		rs.executeSql(sql);
-		if(rs.next()){
-			modeid = Util.null2String(rs.getString("id"));
-		}
-		sql="select * from "+tablename+" where prjid='"+prjid+"'";
-		rs.executeSql(sql);
-		if(rs.next()){
-			billid = Util.null2String(rs.getString("id"));
-		}
-		if("".equals(billid)){
-			InsertUtil iu = new InsertUtil();
-			Map<String, String> mapStr = new HashMap<String, String>();
-			mapStr.put("prjid", prjid);
-			mapStr.put("prjcode", procode);
-			mapStr.put("modedatacreater", "1");
-			mapStr.put("modedatacreatertype", "0");
-			mapStr.put("formmodeid", modeid);
-			iu.insert(mapStr, tablename);
-			sql = "select id from " + tablename + " where prjid='" +prjid+ "'";
-			rs.executeSql(sql);			
-			if (rs.next()) {
-				billid = Util.null2String(rs.getString("id"));			
-			}
-			if (!"".equals(billid)) {
-				ModeRightInfo ModeRightInfo = new ModeRightInfo();
-				ModeRightInfo.editModeDataShare(Integer.valueOf("1"), Integer.valueOf(modeid),
-						Integer.valueOf(billid));
-			}
-		}
-		return billid;
-		
 	}
 
 	
-	public void updateInfo(String dataSourceFlag,
-			String mapsql,String billid,String prjid) {
+	public void updateOrInsertInfo(String dataSourceFlag,
+			String mapsql,String prjid) {
 		RecordSet rs = new RecordSet();
 		RecordSetDataSource rsd = new RecordSetDataSource(dataSourceFlag);
 		String sql = mapsql;
 		String sql_dt = "";
-		String usedmoney = "";
-		String year = "";
-		String dtid = "";
+		String Wzmc = "";
+		String ggxh = "";
+		String dj = "";
+		String sl = "";
+		String zj = "";
+		String gysname = "";
+		String htbh = "";
+		String sgbh = "";
+		String billid = "";
+		rsd.executeSql(sql);
+		if(rsd.next()){
+			sql_dt = "update uf_prj_purchaselist set issys='1' where prjid="+prjid;
+		
+			rs.executeSql(sql_dt);
+		}
 		rsd.executeSql(sql);
 		while(rsd.next()){
-			dtid ="";
-			year = Util.null2String(rsd.getString("year"));
-			usedmoney = Util.null2String(rsd.getString("usedmoney"));
-			sql_dt = "select id from uf_prj_usedmoney_dt1 where mainid="+billid+" and year='"+year+"'";
+			Wzmc = Util.null2String(rsd.getString("Wzmc"));
+			ggxh = Util.null2String(rsd.getString("ggxh"));
+			dj = Util.null2String(rsd.getString("dj"));
+			sl = Util.null2String(rsd.getString("sl"));
+			zj = Util.null2String(rsd.getString("zj"));
+			gysname = Util.null2String(rsd.getString("gysname"));
+			htbh = Util.null2String(rsd.getString("htbh"));
+			sgbh = Util.null2String(rsd.getString("sgbh"));
+			sql_dt = "select id from uf_prj_purchaselist where prjid="+prjid+" and Wzmc='"+Wzmc+"' and ggxh='"+ggxh+"' and dj='"+dj+"' and sl='"+sl+"' and zj='"+zj+"' and gysname='"+gysname+"' and htbh='"+htbh+"' and sgbh='"+sgbh+"'";
 			rs.executeSql(sql_dt);
 			if(rs.next()){
-				dtid = Util.null2String(rs.getString("id"));
+				billid = Util.null2String(rs.getString("id"));
 			}
-			if("".equals(dtid)){
-				sql_dt = "insert into uf_prj_usedmoney_dt1(mainid,year,usedmoney) values('"+billid+"','"+year+"','"+usedmoney+"')";
+			if("".equals(billid)){
+				sql_dt = "insert into uf_prj_purchaselist(prjid,Wzmc,ggxh,dj,sl,zj,gysname,htbh,issys,sgbh) values('"+prjid+"','"+Wzmc+"','"+ggxh+"','"+dj+"','"+sl+"','"+zj+"','"+gysname+"','"+htbh+"','0','"+sgbh+"')";
 				rs.executeSql(sql_dt);
 			}else{
-				sql_dt = "update uf_prj_usedmoney_dt1 set usedmoney='"+usedmoney+"' where id="+dtid;
+				sql_dt = "update uf_prj_purchaselist set issys='"+0+"' where id="+billid;
 				rs.executeSql(sql_dt);
 			}
 		}
-		
-		sql_dt = "update hs_projectinfo set prjamount=(select nvl(sum(nvl(usedmoney,0)),0) from uf_prj_usedmoney_dt1 where mainid="+billid+") where id="+prjid;
+		sql_dt = "delete from uf_prj_purchaselist where issys='1' and prjid="+prjid;
 		rs.executeSql(sql_dt);
 		
 		
@@ -277,7 +241,7 @@ public class SysnMoneyOutDataImpl {
 	 * @param prjtype
 	 * @return
 	 */
-	public Map<String, String> checkMapSql(String mapSql, String prjtype) {
+	public Map<String, String> checkMapSql(String mapSql) {
 		String tranSql = mapSql;
 		boolean flag = true;
 		boolean checkResult = true;
@@ -288,7 +252,7 @@ public class SysnMoneyOutDataImpl {
 		int index = 0;
 		Map<String, String> resultMap = new HashMap<String, String>();
 		str = mapSql;
-		if (tranSql.indexOf("year") < 0 || tranSql.indexOf("usedmoney") < 0) {
+		if (tranSql.indexOf("Wzmc") < 0 || tranSql.indexOf("ggxh") < 0|| tranSql.indexOf("dj") < 0|| tranSql.indexOf("sl") < 0|| tranSql.indexOf("zj") < 0|| tranSql.indexOf("gysname") < 0|| tranSql.indexOf("htbh") < 0) {
 			resultMap.put("fieldNames", fieldNames);
 			resultMap.put("result", "-1");
 			return resultMap;
@@ -310,13 +274,13 @@ public class SysnMoneyOutDataImpl {
 				flag = false;
 			} else {
 				if (fieldname.indexOf("def_") >= 0) {
-					if (!checkFieldExists("1", prjtype,
+					if (!checkFieldExists("1",
 							fieldname.replace("def_", ""))) {
 						checkResult = false;
 						flag = false;
 					}
 				} else {
-					if (!checkFieldExists("0", prjtype,
+					if (!checkFieldExists("0",
 							fieldname)) {
 						checkResult = false;
 						flag = false;
@@ -372,13 +336,12 @@ public class SysnMoneyOutDataImpl {
 	 * @param fieldname
 	 * @return
 	 */
-	public boolean checkFieldExists(String isdef, String prjtype,
+	public boolean checkFieldExists(String isdef,
 			String fieldname) {
 		RecordSet rs = new RecordSet();
 		String sql = "";
 		int count = 0;
-		sql = "select count(1) as count from uf_project_field where prjtype='"
-				+ prjtype + "' and fieldname='" + fieldname
+		sql = "select count(1) as count from uf_project_field where  fieldname='" + fieldname
 				+ "' and iscommon='" + isdef + "'";
 		// log.writeLog("sql"+sql);
 		rs.executeSql(sql);

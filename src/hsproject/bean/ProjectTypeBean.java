@@ -18,6 +18,7 @@ public class ProjectTypeBean {
 	private String createdate = "";//创建日期
 	private String dsporder = "";//显示顺序
 	private String isused = "";//是否启用
+	private String subcompany = "";//所属分部
 	
 	
 	public String getId() {
@@ -98,6 +99,12 @@ public class ProjectTypeBean {
 	}
 	public void setIsused(String isused) {
 		this.isused = isused;
+	}
+	public String getSubcompany() {
+		return subcompany;
+	}
+	public void setSubcompany(String subcompany) {
+		this.subcompany = subcompany;
 	}
 	
 }

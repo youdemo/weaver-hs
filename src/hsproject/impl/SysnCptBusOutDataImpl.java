@@ -257,7 +257,7 @@ public class SysnCptBusOutDataImpl {
 				if(!"".equals(fieldName)){
 					String value = "";
 					value = Util.null2String(rsd.getString(dbo.getMapfield()));
-					map.put(fieldName, value);
+					map.put(fieldName, value.replace("'","'||chr(39)||'").replace("&","'||chr(38)||'"));
 				}
 				
 			}
@@ -306,6 +306,7 @@ public class SysnCptBusOutDataImpl {
 		InsertUtil iu = new InsertUtil();
 		String sql = mapsql;
 		String sql_dt = "";
+		String purchaseamount = "";
 		//log.writeLog("sql:"+sql);
 		rsd.executeSql(sql);
 		if(rsd.next()){
@@ -322,7 +323,7 @@ public class SysnCptBusOutDataImpl {
 				if(!"".equals(fieldName)){
 					String value = "";
 					value = Util.null2String(rsd.getString(dbo.getMapfield()));
-					map.put(fieldName, value);
+					map.put(fieldName, value.replace("'","'||chr(39)||'").replace("&","'||chr(38)||'"));
 				}
 				
 			}
@@ -334,8 +335,8 @@ public class SysnCptBusOutDataImpl {
 				String value=map.get(key);
 				whereSql += "and "+key+"='"+value+"'";
 			}
-			String cptid="";
-			sql_dt="select id from hs_prj_businfo where "+whereSql;
+			String cptid = "";
+			sql_dt = "select id from hs_prj_businfo where "+whereSql;
 			rs.executeSql(sql_dt);
 			if(rs.next()){
 				cptid = Util.null2String(rs.getString("id"));
@@ -352,7 +353,15 @@ public class SysnCptBusOutDataImpl {
 				iu.insert(map, "hs_prj_businfo");
 			}
 		}
-		sql_dt="delete from hs_prj_businfo where issys='1' and prjid="+prjid;
+		sql_dt = "delete from hs_prj_businfo where issys='1' and prjid="+prjid;
+		rs.executeSql(sql_dt);
+		sql_dt = "select nvl(sum(nvl(applyamount,0)),0) as purchaseamount from hs_prj_businfo where prjid="+prjid;
+		rs.executeSql(sql_dt);
+		if(rs.next()) {
+			purchaseamount = Util.null2String(rs.getString("purchaseamount"));
+		}
+		sql_dt = "update hs_projectinfo set purchaseamount='"+purchaseamount+"' where id="+prjid;
+		//log.writeLog("bus update sql:"+sql_dt);
 		rs.executeSql(sql_dt);
 	}
 	

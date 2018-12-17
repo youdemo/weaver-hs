@@ -29,7 +29,7 @@ public class TransUtil {
 				fileId = Util.null2String(rs.getString("imagefileid"));
 				url = url
 						+ "<a target=\"_blank\" href=\"/weaver/weaver.file.FileDownload?fileid="
-						+ fileId + "&coworkid=-1&requestid=0&desrequestid=0\">"
+						+ fileId + "&download=1\">"
 						+ fileName + "</a>";
 				flag = " <br/>";
 			}

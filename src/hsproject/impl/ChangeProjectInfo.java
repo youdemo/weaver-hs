@@ -31,6 +31,8 @@ public class ChangeProjectInfo implements Action{
 		String newvalue = "";
 		String sysno = "";
 		String bgzds = "";//项目变更字段
+		String changestatus = "";
+		String otherinfo = "";
 		String flag = "";
 		String sql = "select b.tablename from modeinfo a,workflow_bill b where a.formid=b.id and a.id="
 				+ modeId;
@@ -44,6 +46,8 @@ public class ChangeProjectInfo implements Action{
 			prjid = Util.null2String(rs.getString("prjid"));
 			projecttype = Util.null2String(rs.getString("projecttype"));
 			operater = Util.null2String(rs.getString("operater"));
+			changestatus = Util.null2String(rs.getString("changestatus"));
+			otherinfo = Util.null2String(rs.getString("otherinfo"));
 		}
 		Map<String, String> oldComMap = new HashMap<String, String>();
 		Map<String, String> oldDefMap = new HashMap<String, String>();
@@ -74,6 +78,22 @@ public class ChangeProjectInfo implements Action{
 				oldDefMap.put(fieldname, oldvalue);
 			}
 		}
+		if("0".equals(changestatus)){
+			comMap.put("status", "项目终止");
+			bgzds=bgzds+flag+"项目终止";
+			flag=",";
+		}else if("1".equals(changestatus)){
+			comMap.put("status", "项目暂停");
+			bgzds=bgzds+flag+"项目暂停";
+			flag=",";
+		}else if("2".equals(changestatus)){
+			comMap.put("status", getPrjCurrentStatus(prjid,projecttype));
+			bgzds=bgzds+flag+"取消暂停";
+			flag=",";
+		}
+		if(!"".equals(otherinfo)) {
+			bgzds=bgzds+flag+"其他信息变更";
+		}
 		InsertUtil iu = new InsertUtil();	
 		if(comMap.size()>0){
 			iu.updateGen(comMap, "hs_projectinfo", "id", prjid);
@@ -88,5 +108,68 @@ public class ChangeProjectInfo implements Action{
 		return SUCCESS;
 	}
 	
+	public String getPrjCurrentStatus(String prjid,String prjtype) {
+		RecordSet rs = new RecordSet();
+		RecordSet rs_dt = new RecordSet();
+		String sql = "";
+		String processid = "";
+		String id = "";
+		String sql_dt = "";
+		String processname = "";
+		String statusname = "";
+		sql = "select id from hs_prj_process where prjid='"+prjid+"' and status='进行中'";
+		rs.executeSql(sql);
+		if(rs.next()) {
+			processid = Util.null2String(rs.getString("id"));
+		}
+		if("".equals(processid)) {
+			sql="select id,processname from uf_prj_process where prjtype='"+prjtype+"' and isused='1' order by dsporder asc,id asc";
+			rs.executeSql(sql);
+			while(rs.next()) {
+				id = Util.null2String(rs.getString("id"));
+				int count =0;
+				sql_dt = "select COUNT(1) as count from hs_prj_process where prjid='"+prjid+"' and processtype='"+id+"' and nvl(isused,'0')<>1";
+				rs_dt.executeSql(sql_dt);
+				if(rs_dt.next()){
+					count = rs_dt.getInt("count");
+				}
+				if(count == 0){
+					continue;
+				}
+				count =0;
+				sql_dt = "select COUNT(1) as count from hs_prj_process where prjid='"+prjid+"' and processtype='"+id+"' and isdone='1'";
+				rs_dt.executeSql(sql_dt);
+				if(rs_dt.next()){
+					count = rs_dt.getInt("count");
+				}
+				if(count == 1){
+					continue;
+				}else {
+					sql_dt = "select id from hs_prj_process where prjid='"+prjid+"' and processtype='"+id+"'";
+					rs_dt.executeSql(sql_dt);
+					if(rs_dt.next()){
+						processid = Util.null2String(rs_dt.getString("id"));
+					}
+					break;
+				}
+			}
+		}
+		if(!"".equals(processid)) {
+			sql = "select b.processname from hs_prj_process a,uf_prj_process b where a.processtype=b.id and a.id="+processid;
+			rs.executeSql(sql);
+			if(rs.next()) {
+				processname = Util.null2String(rs.getString("processname"));
+			}
+			sql="select statusname from uf_prj_proc_status where processname='"+processname+"'";
+			rs.executeSql(sql);
+			if(rs.next()){
+				statusname = Util.null2String(rs.getString("statusname"));
+			}
+		}else {
+			statusname = "完成";
+		}
+		return statusname;
+		
+	}
 
 }

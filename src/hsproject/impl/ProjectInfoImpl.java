@@ -66,6 +66,8 @@ public class ProjectInfoImpl {
 				pld.writePrjLog("0", "0", prjid, pidComMap, pidDefMap, new HashMap<String, String>(), new HashMap<String, String>(), prjtype, userid);
 			}
 			if(!"".equals(prjid)){
+				AddDocShare ads = new AddDocShare();
+				ads.addShareByPrj(prjid);
 				insertPrjProcess(prjid,prjtype,userid);
 			}
 			return prjid;
@@ -78,10 +80,16 @@ public class ProjectInfoImpl {
 		public String getPrjStatus(String prjtype){
 			RecordSet rs = new RecordSet();
 			String status = "";
-			String sql="select id,processname from uf_prj_process where prjtype='"+prjtype+"' and isused='1' order by dsporder asc,id asc";
+			String processname = "";
+			String sql = "select id,processname from uf_prj_process where prjtype='"+prjtype+"' and isused='1' order by dsporder asc,id asc";
 			rs.executeSql(sql);
 			if(rs.next()){
-				status = Util.null2String(rs.getString("processname"));
+				processname = Util.null2String(rs.getString("processname"));
+			}
+			sql = "select statusname from uf_prj_proc_status where processname='"+processname+"'";
+			rs.executeSql(sql);
+			if(rs.next()){
+				status = Util.null2String(rs.getString("statusname"));
 			}
 			return status;
 		}
@@ -152,6 +160,8 @@ public class ProjectInfoImpl {
 				oldDefMap = getOldValueMap(prjid,pidDefMap,"0");
 				iu.updateGen(pidDefMap, "hs_project_fielddata", "id", ideId);
 			}
+			AddDocShare ads = new AddDocShare();
+			ads.addShareByPrj(prjid);
 			pld.writePrjLog("1", "0", prjid, pidComMap, pidDefMap, oldComMap, oldDefMap, prjtype, userid);
 		}
 		/**
@@ -166,6 +176,7 @@ public class ProjectInfoImpl {
 			PrjLogDao pld = new PrjLogDao();
 			String 	processtype = "";
 			String processname = "";
+			int num = 1;
 			String sql="select id,processname from uf_prj_process where prjtype='"+prjtype+"' and isused='1' order by dsporder asc,id asc";
 			rs.executeSql(sql);
 			while(rs.next()){
@@ -178,6 +189,10 @@ public class ProjectInfoImpl {
 				processMap.put("processtype", processtype);
 				processMap.put("prjid", prjid);
 				processMap.put("id",processid);
+				if(num == 1){
+					processMap.put("status","进行中");
+				}
+				num++;
 				iu.insert(processMap, "hs_prj_process");
 				
 				Map<String, String> pidDefMap = new HashMap<String, String>();
@@ -185,7 +200,7 @@ public class ProjectInfoImpl {
 				pidDefMap.put("processid", processid);
 				pidDefMap.put("id", su.getTableMaxId("hs_prj_process_fielddata"));
 				iu.insert(pidDefMap, "hs_prj_process_fielddata");
-				pld.writePrjLog("0", "1", processid, processMap, pidDefMap, new HashMap<String, String>(), new HashMap<String, String>(), processtype, userid);
+				pld.writePrjLog("0", "1", processid, processMap, pidDefMap, new HashMap<String, String>(), new HashMap<String, String>(), processtype, userid);	
 			}
 		}
 		
@@ -237,5 +252,68 @@ public class ProjectInfoImpl {
 				}
 			}
 			return oldMap;
+		}
+		
+		public Map<String, String> getPersonPrjCount(String ryid){
+			RecordSet rs = new RecordSet();
+			String sql = "";
+			int xmzs = 0;//项目总数
+			int zjxms = 0;//在建项目数
+			int ycxmzs = 0;//异常项目总数
+			Map<String, String> map = new  HashMap<String, String>();
+			sql = "select count(1) as count from hs_projectinfo where manager='"+ryid+"'";
+			rs.executeSql(sql);
+			if(rs.next()){
+				xmzs = rs.getInt("count");
+			}
+			sql = "select count(1) as count from hs_projectinfo where manager='"+ryid+"' and status not in('项目终止','完成')";
+			rs.executeSql(sql);
+			if(rs.next()){
+				zjxms = rs.getInt("count");
+			}
+			sql = "select count(1) as count from hs_projectinfo where manager='"+ryid+"' and isdelay='0'";
+			rs.executeSql(sql);
+			if(rs.next()){
+				ycxmzs = rs.getInt("count");
+			}
+			map.put("xmzs", String.valueOf(xmzs));
+			map.put("zjxms", String.valueOf(zjxms));
+			map.put("ycxmzs", String.valueOf(ycxmzs));
+			
+			return map;
+		}
+		
+		public String getCheckAttachLink(String attachid) {
+			StringBuffer sb = new StringBuffer();
+			RecordSet rs = new RecordSet();
+			String sql = "";
+			String imagefileid = "";
+			String imagefilename = "";
+			if(!"".equals(attachid)) {
+				sql = " select imagefileid,imagefilename from docimagefile where docid in("+attachid+")";
+				rs.executeSql(sql);
+				while(rs.next()) {
+					imagefileid = Util.null2String(rs.getString("imagefileid"));
+					imagefilename = Util.null2String(rs.getString("imagefilename"));
+					if(sb.length()>0) {
+						sb.append("<br/>");
+					}
+					sb.append("<a href='/weaver/weaver.file.FileDownload?fileid=" + imagefileid + "&download=1' title='下载' >" + imagefilename + "</a>");
+				}
+			}
+			return sb.toString();
+		}
+		
+		public void deleteCheckDoc(String ids) {
+			RecordSet rs = new RecordSet();
+			String sql="";
+			String idArr[]=ids.split(",");
+			for(String id : idArr) {
+				if("".equals(id)) {
+					continue;
+				}
+				sql="delete from uf_prj_check_doc where id="+id;
+				rs.executeSql(sql);
+			}
 		}
 }

@@ -24,7 +24,7 @@ public class UpdateProjectStatus extends BaseCronJob{
 		String status = "";
 		String prjtype = "";
 		String isdelay = "1"; //0延期 1 不延期
-		String sql = "select * from hs_projectinfo where status <> '完成'";
+		String sql = "select * from hs_projectinfo where status not in('完成','项目终止','项目暂停') ";
 		rs.executeSql(sql);
 		while(rs.next()){
 			isdelay = "1";
@@ -57,15 +57,16 @@ public class UpdateProjectStatus extends BaseCronJob{
 		RecordSet rs = new RecordSet();
 		String processid = "";
 		String enddate = "";
-		String sql = "select id from uf_prj_process where prjtype='"+prjtype+"' and isused='1' and processname='"+status+"'";
-		rs.executeSql(sql);
-		if(rs.next()){
-			processid = Util.null2String(rs.getString("id"));
-		}
-		if("".equals(processid)){
-			enddate = "";
-		}
-		sql="select enddate from hs_prj_process where prjid="+prjid+" and processtype='"+processid+"'";
+		String sql="";
+//		String sql = "select id from uf_prj_process where prjtype='"+prjtype+"' and isused='1' and processname='"+status+"'";
+//		rs.executeSql(sql);
+//		if(rs.next()){
+//			processid = Util.null2String(rs.getString("id"));
+//		}
+//		if("".equals(processid)){
+//			enddate = "";
+//		}
+		sql="select enddate from hs_prj_process where prjid="+prjid+" and status='进行中' order by id asc";
 		rs.executeSql(sql);
 		if(rs.next()){
 			enddate = Util.null2String(rs.getString("enddate"));

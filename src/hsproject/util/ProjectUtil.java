@@ -1,5 +1,6 @@
 package hsproject.util;
 
+import freemarker.cache.StrongCacheStorage;
 import weaver.conn.RecordSet;
 import weaver.general.Util;
 
@@ -79,6 +80,26 @@ public class ProjectUtil {
 			return "0";
 		}
 	}
+	/**
+	 * 校验是否是项目经理
+	 * @param userid
+	 * @param prjid
+	 * @return
+	 */
+	public String checkisProjectManager(String userid,String prjid){
+		RecordSet rs = new RecordSet();
+		int count =0 ;
+		String sql = "select count(1) as count from hs_projectinfo where id="+prjid+" and manager="+userid;
+		rs.executeSql(sql);
+		if(rs.next()){
+			count = rs.getInt("count");
+		}
+		if(count>0){
+			return "1";
+		}else{
+			return "0";
+		}
+	}
 	
 	public String getSupperDepartmentId(String departmentid){
 		RecordSet rs = new RecordSet();
@@ -104,5 +125,41 @@ public class ProjectUtil {
 		}
 		
 		return superid;
+	}
+	
+	public String getProjectAllAttachs(String prjid) {
+		RecordSet rs = new RecordSet();
+		String attachs = "";
+		String attach = "";
+		String flag = "";
+		String sql = "select attach  from hs_projectinfo where id="+prjid;
+		rs.executeSql(sql);
+		if(rs.next()) {
+			attach = Util.null2String(rs.getString("attach"));
+		}
+		attachs = attach;
+		if(!"".equals(attachs)) {
+			flag = ",";
+		}
+		sql = "select processattach from hs_prj_process where prjid="+prjid;
+		rs.executeSql(sql);
+		while(rs.next()) {
+			attach = Util.null2String(rs.getString("processattach"));
+			if(!"".equals(attach)) {
+				attachs = attachs + flag + attach;
+				flag = ",";
+			}
+		}
+		sql = "select attach from uf_prj_check_doc where prjid="+prjid;
+		rs.executeSql(sql);
+		while(rs.next()) {
+			attach = Util.null2String(rs.getString("attach"));
+			if(!"".equals(attach)) {
+				attachs = attachs + flag + attach;
+				flag = ",";
+			}
+		}
+		
+		return attachs;
 	}
 }

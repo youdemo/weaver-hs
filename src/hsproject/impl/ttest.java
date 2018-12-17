@@ -13,9 +13,20 @@ public class ttest {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String nowTime = sf.format(new Date());
-		System.out.println(nowTime);
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:MM");
+		SimpleDateFormat dateFormate = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat timeFormate = new SimpleDateFormat("HH:mm");
+		
+		String nowDate = dateFormate.format(new Date());
+		String nowTime = timeFormate.format(new Date());
+		String month = nowDate.substring(5,7).replaceAll("^(0+)", "");
+		String day = nowDate.substring(8,10).replaceAll("^(0+)", "");
+		String hour = nowTime.substring(0, 2).replaceAll("^(0+)", "");
+		if("".equals(hour)) {
+			hour = "0";
+		}
+		hour = String.valueOf(Integer.valueOf(hour)+1);
+		ConvertPDFTools aa = new ConvertPDFTools();
 	}
 	 public static String removeHtmlTag(String content) {
 			Pattern p = Pattern.compile("<([a-zA-Z]+)[^<>]*>(.*?)</\\1>");

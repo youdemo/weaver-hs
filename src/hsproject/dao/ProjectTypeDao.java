@@ -35,6 +35,7 @@ public class ProjectTypeDao {
 			ptb.setCreatedate(Util.null2String(rs.getString("createdate")));
 			ptb.setDsporder(Util.null2String(rs.getString("dsporder")));
 			ptb.setIsused(Util.null2String(rs.getString("isused")));
+			ptb.setSubcompany(Util.null2String(rs.getString("subcompany")));
 			list.add(ptb);
 		}
 		return list;
@@ -63,9 +64,43 @@ public class ProjectTypeDao {
 			ptb.setCreatedate(Util.null2String(rs.getString("createdate")));
 			ptb.setDsporder(Util.null2String(rs.getString("dsporder")));
 			ptb.setIsused(Util.null2String(rs.getString("isused")));
+			ptb.setSubcompany(Util.null2String(rs.getString("subcompany")));
 			list.add(ptb);
 		}
 		return list;
+	}
+	/**
+	 * 过去项目类型信息
+	 * @param department
+	 * @param subid
+	 * @return
+	 */
+	public ProjectTypeBean getProjectType(String prjtype){
+		ProjectTypeBean ptb = new ProjectTypeBean();
+		if("".equals(prjtype)){
+			return ptb;
+		}
+		RecordSet rs = new RecordSet();
+		String sql="select * from uf_project_type where id='"+prjtype+"'";
+		rs.executeSql(sql);
+		if(rs.next()){
+			ptb.setId( Util.null2String(rs.getString("id")));
+			ptb.setTypename( Util.null2String(rs.getString("typename")));
+			ptb.setProtypecode(Util.null2String(rs.getString("protypecode")));
+			ptb.setDescription(Util.null2String(rs.getString("description")));
+			ptb.setDepartment(Util.null2String(rs.getString("department")));
+			ptb.setSeclevelstart(Util.null2String(rs.getString("seclevelstart")));
+			ptb.setSeclevelend(Util.null2String(rs.getString("seclevelend")));
+			ptb.setManager(Util.null2String(rs.getString("manager")));
+			ptb.setAttach(Util.null2String(rs.getString("attach")));
+			ptb.setCreater(Util.null2String(rs.getString("creater")));
+			ptb.setCreatedate(Util.null2String(rs.getString("createdate")));
+			ptb.setDsporder(Util.null2String(rs.getString("dsporder")));
+			ptb.setIsused(Util.null2String(rs.getString("isused")));
+			ptb.setSubcompany(Util.null2String(rs.getString("subcompany")));
+			
+		}
+		return ptb;
 	}
 	
 	/**
@@ -91,6 +126,7 @@ public class ProjectTypeDao {
 			ptb.setCreatedate(Util.null2String(rs.getString("createdate")));
 			ptb.setDsporder(Util.null2String(rs.getString("dsporder")));
 			ptb.setIsused(Util.null2String(rs.getString("isused")));
+			ptb.setSubcompany(Util.null2String(rs.getString("subcompany")));
 			list.add(ptb);
 		}
 		return list;

@@ -1,11 +1,13 @@
 package test;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import weaver.docs.docs.DocComInfo;
+import weaver.general.Util;
 import weaver.hrm.resource.ResourceComInfo;
 
 public class Test {
@@ -14,15 +16,12 @@ public class Test {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		SimpleDateFormat dateFormate = new SimpleDateFormat("yyyy-MM-dd");
-		String nowDate = dateFormate.format(new Date());
-		System.out.println(nowDate.substring(5,7));
-		StringBuffer xml = new StringBuffer();
-		xml.append("aaaa").append("\n").append("bbbb").append("vvv");
-		System.out.println(xml.toString());
-		if("2002-12-31".compareTo("2002-01-01")<0){
-			System.out.println("asd");
-		}
+		Map<String, String> map = new HashMap<String, String>();
+		System.out.println(Util.null2String(map.get("123")));
+		DecimalFormat decimalFormat=new DecimalFormat(".00");
+		String p=decimalFormat.format(1.1);
+		System.out.println(p);
+		
 	}
 	
 	public static Map<String,String> getFieldStr(String str){

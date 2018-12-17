@@ -399,6 +399,7 @@ public class SysnOutDataImpl {
 					if("1".equals(needupdate)){
 						map = new HashMap<String, String>();
 						map.put("isdone", "1");
+						map.put("status", "完成");
 						iu.updateGen(map, "hs_prj_process", "id", processid);
 						pii.updatePrjStatus(prjid,processtype,processid,prjtype);
 					}
@@ -475,7 +476,7 @@ public class SysnOutDataImpl {
 			map.put("result", "-1");
 			return map;
 		}
-		map.put("value",value);
+		map.put("value",value.replace("'","'||chr(39)||'").replace("&","'||chr(38)||'"));
 		map.put("result", "1");
 		return map;
 	}

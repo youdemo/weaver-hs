@@ -47,7 +47,7 @@ public class SendDelayEmail extends BaseCronJob{
 		ca.add(Calendar.DATE, Util.getIntValue(remindday,0));// num为增加的天数，可以改变的
 		Date currdate = ca.getTime();
 		nowDate = dateFormate.format(currdate);
-		sql="select * from hs_projectinfo where status <> '完成' and (isdelay <>'0' or isdelay is null)";
+		sql="select * from hs_projectinfo where status not in('完成','项目终止','项目暂停')  and (isdelay <>'0' or isdelay is null)";
 		rs.executeSql(sql);
 		while(rs.next()){
 			isdelay = "1";
@@ -90,15 +90,16 @@ public class SendDelayEmail extends BaseCronJob{
 		RecordSet rs = new RecordSet();
 		String processid = "";
 		String enddate = "";
-		String sql = "select id from uf_prj_process where prjtype='"+prjtype+"' and isused='1' and processname='"+status+"'";
-		rs.executeSql(sql);
-		if(rs.next()){
-			processid = Util.null2String(rs.getString("id"));
-		}
-		if("".equals(processid)){
-			enddate = "";
-		}
-		sql="select enddate from hs_prj_process where prjid="+prjid+" and processtype='"+processid+"'";
+		String sql="";
+//		String sql = "select id from uf_prj_process where prjtype='"+prjtype+"' and isused='1' and processname='"+status+"'";
+//		rs.executeSql(sql);
+//		if(rs.next()){
+//			processid = Util.null2String(rs.getString("id"));
+//		}
+//		if("".equals(processid)){
+//			enddate = "";
+//		}
+		sql="select enddate from hs_prj_process where prjid="+prjid+" and status='进行中' order by id asc";
 		rs.executeSql(sql);
 		if(rs.next()){
 			enddate = Util.null2String(rs.getString("enddate"));
@@ -135,11 +136,19 @@ public class SendDelayEmail extends BaseCronJob{
 		RecordSet rs = new RecordSet();
 		String name = "";
 		String procode = "";
-		String sql = "select name,procode,prjtype from hs_projectinfo where id="+prjid;
+		String belongdepart = "";
+		String mailto = "";
+		String sql = "select name,procode,prjtype,belongdepart from hs_projectinfo where id="+prjid;
 		rs.executeSql(sql);
 		if(rs.next()){
 			name = Util.null2String(rs.getString("name"));
 			procode = Util.null2String(rs.getString("procode"));
+			belongdepart = Util.null2String(rs.getString("belongdepart"));
+		}
+		sql = "select email from uf_prj_departperson a,hrmresource b where a.person=b.id and a.department='"+belongdepart+"'";
+		rs.executeSql(sql);
+		if(rs.next()){
+			mailto = Util.null2String(rs.getString("email")).trim();;
 		}
 		String subject = "项目延期提醒";
 		StringBuffer body = new StringBuffer();
@@ -161,14 +170,18 @@ public class SendDelayEmail extends BaseCronJob{
 		
 		body.append("</table><br><br>");
 		body.append("以上信息请知悉<br>谢谢！<br>");
-		String mailto = "";
 		sql="select  email from hrmresource where id="+manager;
 		rs.executeSql(sql);
 		if(rs.next()){
-			mailto = Util.null2String(rs.getString("email")).trim();
-			if(!"".equals(mailto)){
-				sm.sendhtml(mailfrom, mailto, "", "", subject, body.toString(), 3, "3");
+			if("".equals(mailto)){
+				mailto = Util.null2String(rs.getString("email")).trim();
+			}else{
+				mailto = mailto+","+Util.null2String(rs.getString("email")).trim();
 			}
+			
+		}
+		if(!"".equals(mailto)){
+			sm.sendhtml(mailfrom, mailto, "", "", subject, body.toString(), 3, "3");
 		}
 
 	}

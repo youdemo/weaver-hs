@@ -13,9 +13,9 @@ public class SysnUsedMoneyOutDataAction extends BaseCronJob{
 
 	BaseBean log = new BaseBean();
 	public void execute(){
-		log.writeLog("开始外部数据同步");
+		log.writeLog("开始发生额同步");
 		sysnData();
-		log.writeLog("外部数据同步结束");
+		log.writeLog("发生额同步结束");
 	}
 	public void sysnData(){
 		SimpleDateFormat dateFormate = new SimpleDateFormat("yyyy-MM-dd");
@@ -25,6 +25,9 @@ public class SysnUsedMoneyOutDataAction extends BaseCronJob{
 		String month = nowDate.substring(5,7).replaceAll("^(0+)", "");
 		String day = nowDate.substring(8,10).replaceAll("^(0+)", "");
 		String hour = nowTime.substring(0, 2).replaceAll("^(0+)", "");
+		if("".equals(hour)) {
+			hour = "0";
+		}
 		hour = String.valueOf(Integer.valueOf(hour)+1);
 
 		doSysn(month,day,hour,nowDate,nowTime);

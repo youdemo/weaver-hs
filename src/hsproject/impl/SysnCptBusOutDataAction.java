@@ -26,6 +26,9 @@ public class SysnCptBusOutDataAction extends BaseCronJob{
 		String month = nowDate.substring(5,7).replaceAll("^(0+)", "");
 		String day = nowDate.substring(8,10).replaceAll("^(0+)", "");
 		String hour = nowTime.substring(0, 2).replaceAll("^(0+)", "");
+		if("".equals(hour)) {
+			hour = "0";
+		}
 		hour = String.valueOf(Integer.valueOf(hour)+1);
 		doSysn(month,day,hour,nowDate,nowTime);
 	}

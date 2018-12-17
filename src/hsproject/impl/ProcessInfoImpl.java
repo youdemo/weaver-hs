@@ -102,6 +102,7 @@ public class ProcessInfoImpl {
 					}
 					if(!"".equals(keyvalue)){
 						pidComMap.put("isdone", "1");
+						pidComMap.put("status", "完成");
 						updatePrjStatus(prjid,processType,processid,prjtype);
 
 					}
@@ -123,6 +124,11 @@ public class ProcessInfoImpl {
 		}else if(!"".equals(ideId) && pidDefMap.size()>0){
 			oldDefMap = getOldValueMap(prjid,pidDefMap,"0");
 			iu.updateGen(pidDefMap, "hs_prj_process_fielddata", "id", ideId);
+		}
+		String docids = pidComMap.get("processattach");
+		if(!"".equals(docids)){
+			AddDocShare ads = new AddDocShare();
+			ads.addShare(prjid, docids);
 		}
 		pld.writePrjLog("1", "1", processid, pidComMap, pidDefMap, oldComMap, oldDefMap, processType, userid); 
 	}
@@ -148,7 +154,7 @@ public class ProcessInfoImpl {
 			id = Util.null2String(rs.getString("id"));
 			processname = Util.null2String(rs.getString("processname"));
 			int count =0;
-			sql_dt = "select COUNT(1) as count from hs_prj_process where prjid='"+prjid+"' and processtype='"+id+"'";
+			sql_dt = "select COUNT(1) as count from hs_prj_process where prjid='"+prjid+"' and processtype='"+id+"' and nvl(isused,'0')<>1";
 			rs_dt.executeSql(sql_dt);
 			if(rs_dt.next()){
 				count = rs_dt.getInt("count");
@@ -157,7 +163,20 @@ public class ProcessInfoImpl {
 				continue;
 			}
 			if("1".equals(flag)){
-				nextstatus = processname;
+				sql_dt="select processname from uf_prj_process where id="+id;
+				rs_dt.executeSql(sql_dt);
+				if(rs_dt.next()){
+					nextstatus = Util.null2String(rs_dt.getString("processname"));
+				}
+				sql_dt="select statusname from uf_prj_proc_status where processname='"+nextstatus+"'";
+				rs_dt.executeSql(sql_dt);
+				if(rs_dt.next()){
+					nextstatus = Util.null2String(rs_dt.getString("statusname"));
+				}
+				if(!"".equals(nextstatus)){
+					sql_dt ="update hs_prj_process set status='进行中' where prjid='"+prjid+"' and processtype='"+id+"'";
+					rs_dt.executeSql(sql_dt);
+				}
 				break;
 			}
 			if(processType.equals(id)){
@@ -212,6 +231,7 @@ public class ProcessInfoImpl {
 	 */
 	public String isPreviousKeyWordWrite(String prjtype,String processtype,String processid){
 		RecordSet rs = new RecordSet();
+		RecordSet rs_dt = new RecordSet();
 		String sql = "";
 		String id = "";
 		String lastid="";
@@ -220,6 +240,8 @@ public class ProcessInfoImpl {
 		String fieldvalue = "";
 		String iscommon = "";
 		String isWrite = "0";
+		int count = 0;
+		String sql_dt = "";
 		
 		sql="select prjid from hs_prj_process where id="+processid;
 		rs.executeSql(sql);
@@ -230,8 +252,16 @@ public class ProcessInfoImpl {
 		sql="select id,processname from uf_prj_process where prjtype='"+prjtype+"' and isused='1' order by dsporder asc,id asc";
 		rs.executeSql(sql);
 		while(rs.next()){
+			count = 0;
 			id = Util.null2String(rs.getString("id"));			
-			
+			sql_dt = "select count(1) as count from hs_prj_process where prjid="+prjid+" and processtype="+id+" and nvl(isused,'0')<>1";
+			rs_dt.executeSql(sql_dt);
+			if(rs_dt.next()) {
+				count = rs_dt.getInt("count");
+			}
+			if(count == 0) {
+				continue;
+			}
 			if(processtype.equals(id)){
 				break;			
 			}
@@ -301,5 +331,42 @@ public class ProcessInfoImpl {
 			}
 		}
 		return oldMap;
+	}
+	
+	public String getProcessAttachIds(String prjid){
+		RecordSet rs = new RecordSet();
+		String docids="";
+		String processattach = "";
+		String sql="select processattach from hs_prj_process where prjid="+prjid;
+		rs.executeSql(sql);
+		while(rs.next()){
+			processattach = Util.null2String(rs.getString("processattach"));
+			if("".equals(processattach)){
+				continue;
+			}else{
+				if("".equals(docids)){
+					docids = processattach;
+				}else{
+					docids = docids+","+processattach;
+				}
+			}
+		}
+		return docids;
+	}
+	
+	/**
+	 * 根据阶段附件id获取对应的阶段名称
+	 * @param docid
+	 * @return
+	 */
+	public String  getProcessName(String docid){
+		RecordSet rs = new RecordSet();
+		String processName = "";		
+		String sql = "select processname from hs_prj_process where ','||processattach||',' like '%,"+docid+",%'";
+		rs.executeSql(sql);
+		if(rs.next()){
+			processName = Util.null2String(rs.getString("processname"));
+		}
+		return processName;
 	}
 }
