@@ -16,7 +16,7 @@ import weaver.system.SystemComInfo;
  * @author tangj
  *
  */
-public class SendDelayEmail extends BaseCronJob{
+public class SendDelayEmail20190218 extends BaseCronJob{
 	
 	public void execute(){
 		BaseBean log = new BaseBean();
@@ -49,7 +49,7 @@ public class SendDelayEmail extends BaseCronJob{
 		ca.add(Calendar.DATE, Util.getIntValue(remindday,0));// num为增加的天数，可以改变的
 		Date currdate = ca.getTime();
 		nowDate = dateFormate.format(currdate);
-		sql="select * from hs_projectinfo where status not in('初验','完成','项目终止','项目暂停')  and (isdelay <>'0' or isdelay is null) ";
+		sql="select * from hs_projectinfo where status not in('完成','项目终止','项目暂停')  and (isdelay <>'0' or isdelay is null) and id=970";
 		rs.executeSql(sql);
 		while(rs.next()){
 			isdelay = "1";
@@ -74,14 +74,14 @@ public class SendDelayEmail extends BaseCronJob{
 					if(rs_dt.next()) {
 						mod = Util.null2String(rs_dt.getString("mod"));
 					}
-					//writeLog("isdey 0 mod:"+mod);
+					writeLog("isdey 0 mod:"+mod);
 					if("0".equals(mod)){
 						
 						isdelay = "0";
 						try {
-							//writeLog("isdey 0 sendmailaaa:");
+							writeLog("isdey 0 sendmailaaa:");
 							boolean result = sendEmail(prjid,manager,enddate,"0");
-							//writeLog("isdey 0 result:"+result);
+							writeLog("isdey 0 result:"+result);
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -91,7 +91,7 @@ public class SendDelayEmail extends BaseCronJob{
 			}
 		}
 		String now = dateFormate.format(new Date());
-		sql="select * from hs_projectinfo where status not in('初验','完成','项目终止','项目暂停')  and isdelay ='0' ";
+		sql="select * from hs_projectinfo where status not in('完成','项目终止','项目暂停')  and isdelay ='0' and id=970";
 		rs.executeSql(sql);
 		while(rs.next()){
 			isdelay = "1";
@@ -117,13 +117,13 @@ public class SendDelayEmail extends BaseCronJob{
 					if(rs_dt.next()) {
 						mod = Util.null2String(rs_dt.getString("mod"));
 					}
-					//writeLog("isdey 1 mod:"+mod);
+					writeLog("isdey 1 mod:"+mod);
 					if("0".equals(mod)){
 						isdelay = "0";
 						try {
-							//writeLog("isdey 1 sendmailaaa:");
+							writeLog("isdey 1 sendmailaaa:");
 							boolean result = sendEmail(prjid,manager,enddate,"1");
-							//writeLog("isdey 1 result:"+result);
+							writeLog("isdey 1 result:"+result);
 						} catch (Exception e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -207,67 +207,28 @@ public class SendDelayEmail extends BaseCronJob{
 		}
 		String subject = "项目延期提醒";
 		StringBuffer body = new StringBuffer();
-		
-		body.append("<style>");
-	    body.append("td{ padding-left:10px; height:22px; font-size:14px;}");
-	    body.append("</style>");
-	    body.append("<DIV style=\"font-size:14px;\">项目延期提醒：");
-	    body.append("<TABLE border=\"0\">");
-	    body.append("<TBODY>");
-	    body.append("<TR>");
-	    body.append("<TD height=\"4\"></TD>");
-	    body.append("</TR>");
-	    body.append("</TBODY>");
-	    body.append("</TABLE>");
-	    body.append("</DIV>");
-	    if("1".equals(type)) {
-	    	body.append("<DIV style=\"font-size:14px;\">以下项目已经延期，请及时处理:</DIV>");
+		body.append("项目延期提醒:<br>");
+		if("1".equals(type)) {
+			body.append("以下项目已经延期，请及时处理:<br><br>");
 		}else {
-			body.append("<DIV style=\"font-size:14px;\">以下项目即将延期，请及时处理:</DIV>");
+			body.append("以下项目即将延期，请及时处理:<br><br>");
 		}	
-	    body.append("<DIV>");
-	    body.append("<TABLE border=\"0\">");
-	    body.append("<TBODY>");
-	    body.append("<TR>");
-	    body.append("<TD height=\"10\"></TD>");
-	    body.append("</TR>");
-	    body.append("</TBODY>");
-	    body.append("</TABLE>");
-	    body.append("</DIV>");
-	    body.append("<TABLE width=\"800\" border=\"0\" cellpadding=\"0\" cellspacing=\"1\" bgcolor=\"#000000\" style=\"line-height:150%\">");
-	    body.append("<TBODY>");
-	    body.append("<TR>");
-	    body.append("<TD width=\"191\" bgcolor=\"#e7f3fc\">项目名称:</TD>");
-	    body.append("<TD width=\"25%\" bgcolor=\"#FFFFFF\">"+name+"</TD>");
-	    body.append("<TD width=\"100\" bgcolor=\"#e7f3fc\">项目编号:</TD>");
-	    body.append("<TD width=\"\" bgcolor=\"#FFFFFF\">"+procode+"</TD>");
-	    body.append("</TR>");
-	    body.append("<TR>");
-	    body.append("<TD bgcolor=\"#e7f3fc\" >项目经理:</TD>");
-	    body.append("<TD bgcolor=\"#FFFFFF\">"+rc.getLastname(manager)+"</TD>");
-	    body.append("<TD bgcolor=\"#e7f3fc\">延期日期:</TD>");
-	    body.append("<TD bgcolor=\"#FFFFFF\">"+delaydate+"</TD>");
-	    body.append("</TR>");
-		    
-	    body.append("</TBODY>");
-	    body.append("</TABLE>");
-	    body.append("<DIV>");
-	    body.append("<TABLE border=\"0\">");
-	    body.append("<TBODY>");
-	    body.append("<TR>");
-	    body.append("<TD height=\"10\" width=\"185\"></TD>");
-	    body.append("</TR>");
-	    body.append("<TR>");
-	    body.append("<TD>Best Regards</TD>");
-	    body.append("</TR>");
-	    body.append("<TR>");
-	    body.append("<TD>投资项目支撑信息平台</TD>");
-	    body.append("</TR>");
-	    body.append("</TBODY>");
-	    body.append("</TABLE>");
-	    body.append("</DIV>");
-	    
+		body.append("<table border=\"2\"  style=\"width: 680px;border-collapse: collapse;font-size:15px;\"> ");
+		body.append("<tr>"); 
+		body.append("	<td style=\"background: LightGrey;text-align:center;width:170px;height:18px;\"><strong>项目名称</strong></td>" ); 
+		body.append("	<td style=\"background: LightGrey;text-align:center;width:170px;height:18px;\"><strong>项目编号</strong></td>" ); 
+		body.append("	<td style=\"background: LightGrey;text-align:center;width:170px;height:18px;\"><strong>项目经理</strong></td>" ); 
+		body.append("	<td style=\"background: LightGrey;text-align:center;width:170px;height:18px;\"><strong>延期日期</strong></td>"); 
+		body.append("</tr>");
+		body.append("<tr>"); 
+		body.append("	<td style=\"text-align:left;width:170px;height:18px;\">");body.append(name); body.append("</td>");
+		body.append("	<td style=\"text-align:left;width:170px;height:18px;\">");body.append(procode); body.append("</td>");
+		body.append("	<td style=\"text-align:left;width:170px;height:18px;\">");body.append(rc.getLastname(manager)); body.append("</td>");
+		body.append("	<td style=\"text-align:left;width:170px;height:18px;\">");body.append(delaydate); body.append("</td>");
+		body.append("</tr>");
 		
+		body.append("</table><br><br>");
+		body.append("以上信息请知悉<br>谢谢！<br>");
 		sql="select  email from hrmresource where id="+manager;
 		rs.executeSql(sql);
 		if(rs.next()){

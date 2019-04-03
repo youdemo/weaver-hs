@@ -180,6 +180,7 @@ public class SysnPurchaseMoneyImpl {
 		String gysname = "";
 		String htbh = "";
 		String sgbh = "";
+		String sgid = "";
 		String billid = "";
 		rsd.executeSql(sql);
 		if(rsd.next()){
@@ -189,21 +190,25 @@ public class SysnPurchaseMoneyImpl {
 		}
 		rsd.executeSql(sql);
 		while(rsd.next()){
-			Wzmc = Util.null2String(rsd.getString("Wzmc"));
-			ggxh = Util.null2String(rsd.getString("ggxh"));
-			dj = Util.null2String(rsd.getString("dj"));
-			sl = Util.null2String(rsd.getString("sl"));
-			zj = Util.null2String(rsd.getString("zj"));
-			gysname = Util.null2String(rsd.getString("gysname"));
-			htbh = Util.null2String(rsd.getString("htbh"));
-			sgbh = Util.null2String(rsd.getString("sgbh"));
-			sql_dt = "select id from uf_prj_purchaselist where prjid="+prjid+" and Wzmc='"+Wzmc+"' and ggxh='"+ggxh+"' and dj='"+dj+"' and sl='"+sl+"' and zj='"+zj+"' and gysname='"+gysname+"' and htbh='"+htbh+"' and sgbh='"+sgbh+"'";
+			Wzmc = Util.null2String(rsd.getString("Wzmc")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
+			ggxh = Util.null2String(rsd.getString("ggxh")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
+			dj = Util.null2String(rsd.getString("dj")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
+			sl = Util.null2String(rsd.getString("sl")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
+			zj = Util.null2String(rsd.getString("zj")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
+			gysname = Util.null2String(rsd.getString("gysname")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
+			htbh = Util.null2String(rsd.getString("htbh")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
+			sgbh = Util.null2String(rsd.getString("sgbh")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
+			sgid = Util.null2String(rsd.getString("sgid")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
+			sql_dt = "select id from uf_prj_purchaselist where prjid="+prjid+" and Wzmc='"+Wzmc+"' and ggxh='"+ggxh+"' and dj='"+dj+"' and sl='"+sl+"' and zj='"+zj+"' and gysname='"+gysname+"' and htbh='"+htbh+"' and sgbh='"+sgbh+"' and sgid='"+sgid+"'";
+			if("916".equals(prjid)) {
+				log.writeLog("aaa "+sql_dt);
+			}
 			rs.executeSql(sql_dt);
 			if(rs.next()){
 				billid = Util.null2String(rs.getString("id"));
 			}
 			if("".equals(billid)){
-				sql_dt = "insert into uf_prj_purchaselist(prjid,Wzmc,ggxh,dj,sl,zj,gysname,htbh,issys,sgbh) values('"+prjid+"','"+Wzmc+"','"+ggxh+"','"+dj+"','"+sl+"','"+zj+"','"+gysname+"','"+htbh+"','0','"+sgbh+"')";
+				sql_dt = "insert into uf_prj_purchaselist(prjid,Wzmc,ggxh,dj,sl,zj,gysname,htbh,issys,sgbh,sgid) values('"+prjid+"','"+Wzmc+"','"+ggxh+"','"+dj+"','"+sl+"','"+zj+"','"+gysname+"','"+htbh+"','0','"+sgbh+"','"+sgid+"')";
 				rs.executeSql(sql_dt);
 			}else{
 				sql_dt = "update uf_prj_purchaselist set issys='"+0+"' where id="+billid;

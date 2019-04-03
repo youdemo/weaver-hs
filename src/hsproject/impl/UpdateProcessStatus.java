@@ -130,7 +130,15 @@ public class UpdateProcessStatus {
 			}else {
 				sql = "update hs_prj_process set isused='1',status='' where id="+processid;
 				rs.executeSql(sql);
-				updateProjectStatus(prjtype,processtype,prjid);
+				String processname = "";
+				sql = "select processname from uf_prj_process where id="+processtype;
+				rs.executeSql(sql);
+				if(rs.next()) {
+					processname = Util.null2String(rs.getString("processname"));
+				}
+				updateProjectStatus(prjtype,processtype,prjid,processname);
+				
+				
 			}
 		}else if("2".equals(type)){
 			sql = "update hs_prj_process set isused='0' where id="+processid;
@@ -139,7 +147,7 @@ public class UpdateProcessStatus {
 		return "S";
 	}
 	
-	public void updateProjectStatus(String prjtype,String processtype,String prjid) {
+	public void updateProjectStatus(String prjtype,String processtype,String prjid,String curprocessname) {
 		RecordSet rs = new RecordSet();
 		RecordSet rs_dt = new RecordSet();
 		BaseBean log = new BaseBean();
@@ -187,7 +195,9 @@ public class UpdateProcessStatus {
 			if(rs.next()){
 				statusname = Util.null2String(rs.getString("statusname"));
 			}
-			sql = "update hs_projectinfo set status='"+statusname+"' where id="+prjid;
+			if(!"上线".equals(curprocessname)) {
+				sql = "update hs_projectinfo set status='"+statusname+"' where id="+prjid;
+			}
 			log.writeLog(sql);
 			rs.executeSql(sql);
 		}else {

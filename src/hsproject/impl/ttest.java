@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sun.org.apache.bcel.internal.generic.NEW;
+
 public class ttest {
 
 	/**
@@ -13,10 +15,10 @@ public class ttest {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:MM");
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd HH:MM:ss");
 		SimpleDateFormat dateFormate = new SimpleDateFormat("yyyy-MM-dd");
 		SimpleDateFormat timeFormate = new SimpleDateFormat("HH:mm");
-		
+		System.out.println(sf.format(new Date()));
 		String nowDate = dateFormate.format(new Date());
 		String nowTime = timeFormate.format(new Date());
 		String month = nowDate.substring(5,7).replaceAll("^(0+)", "");
@@ -25,8 +27,12 @@ public class ttest {
 		if("".equals(hour)) {
 			hour = "0";
 		}
-		hour = String.valueOf(Integer.valueOf(hour)+1);
-		ConvertPDFTools aa = new ConvertPDFTools();
+		System.out.println("2018-09-12".compareTo("2018-09-13"));
+		String phoneString = "ZAA-A20180119";
+		Pattern pattern = Pattern.compile("[^0-9]");
+        Matcher matcher = pattern.matcher(phoneString);
+        String all = matcher.replaceAll("");
+        System.out.println(all);
 	}
 	 public static String removeHtmlTag(String content) {
 			Pattern p = Pattern.compile("<([a-zA-Z]+)[^<>]*>(.*?)</\\1>");

@@ -1,6 +1,5 @@
 package hsproject.util;
 
-import freemarker.cache.StrongCacheStorage;
 import weaver.conn.RecordSet;
 import weaver.general.Util;
 
@@ -61,7 +60,7 @@ public class ProjectUtil {
 	    sqlWhere.append("  or exists(select 1 from uf_project_type t2 where t2.id=t1.prjtype and t2.department in ('"+departmentid+"','"+supdepid+"'))");
 	    sqlWhere.append("  or exists(select 1 from uf_prj_departperson t2 where t2.department=t1.belongdepart and t2.person="+userid+")");
 	    sqlWhere.append("  or belongdepart in (select department from uf_prj_departperson where general='"+userid+"')");
-	    
+	    sqlWhere.append("  or exists(select 1 from uf_project_role a, hrmrolemembers b where a.role=b.roleid and a.company=t1.belongCompany and b.resourceid="+userid+")");
 		sqlWhere.append(" )");
 		return sqlWhere.toString();
 	}
@@ -161,5 +160,20 @@ public class ProjectUtil {
 		}
 		
 		return attachs;
+	}
+	
+	public String getFileTypes() {
+		RecordSet rs = new RecordSet();
+		String typenames = ",";
+		String typename = "";
+		String sql = "select filetype from uf_project_filetype";
+		rs.executeSql(sql);
+		while(rs.next()) {
+			typename = Util.null2String(rs.getString("filetype"));
+			if(!"".equals(typename)) {
+				typenames=typenames+typename+",";
+			}
+		}
+		return typenames;
 	}
 }

@@ -16,7 +16,7 @@ public class UpdateProjectStatus extends BaseCronJob{
 		log.writeLog("开始更新是否延期结束");
 	}
 	
-	public void updateStatus(){
+	public void updateStatus(){ 
 		RecordSet rs = new RecordSet();
 		SimpleDateFormat dateFormate = new SimpleDateFormat("yyyy-MM-dd");
 		String nowDate = dateFormate.format(new Date());
@@ -25,9 +25,9 @@ public class UpdateProjectStatus extends BaseCronJob{
 		String prjtype = "";
 		String isdelay = "1"; //0延期 1 不延期
 		String sql = "select * from hs_projectinfo where status not in('完成','项目终止','项目暂停') ";
-		rs.executeSql(sql);
+		rs.executeSql(sql);  
 		while(rs.next()){
-			isdelay = "1";
+			isdelay = "1"; 
 			prjid = Util.null2String(rs.getString("id"));
 			status = Util.null2String(rs.getString("status"));
 			prjtype = Util.null2String(rs.getString("prjtype"));
@@ -44,6 +44,12 @@ public class UpdateProjectStatus extends BaseCronJob{
 				}
 			}
 			updateDelayStatus(prjid,isdelay);
+		}
+		sql = "select * from hs_projectinfo where status in('完成','项目终止','项目暂停') ";
+		rs.executeSql(sql);
+		while(rs.next()){
+			prjid = Util.null2String(rs.getString("id"));
+			updateDelayStatus(prjid,"1");
 		}
 	}
 	

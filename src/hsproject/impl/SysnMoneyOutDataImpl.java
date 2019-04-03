@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import weaver.conn.RecordSet;
 import weaver.conn.RecordSetDataSource;
@@ -143,6 +145,7 @@ public class SysnMoneyOutDataImpl {
 			fieldname = "";
 			fieldvalue = "";
 			prjid = Util.null2String(rs.getString("id"));
+			
 			procode = Util.null2String(rs.getString("procode"));
 			// log.writeLog("prjid:"+prjid);
 			ProjectInfoDao pid = new ProjectInfoDao();
@@ -159,11 +162,17 @@ public class SysnMoneyOutDataImpl {
 				} else {
 					fieldvalue = pidComMap.get(fieldname);
 				}
+				if("procode".equals(fieldname)) {
+					Pattern pattern = Pattern.compile("[^0-9]");
+			        Matcher matcher = pattern.matcher(fieldvalue);
+			        fieldvalue = matcher.replaceAll("");
+				}
 				fieldname = "##" + fieldname + "##";
+				
 				mapsql = mapsql.replace(fieldname, fieldvalue);
 				
 			}
-		    //log.writeLog("mapsql:"+mapsql);
+		    log.writeLog("mapsql:"+mapsql);
 		    String billid=getUsedMoneyid(prjid,procode);
 		    if(!"".equals(billid)){
 		    	updateInfo(dataSourceFlag,mapsql,billid,prjid);
