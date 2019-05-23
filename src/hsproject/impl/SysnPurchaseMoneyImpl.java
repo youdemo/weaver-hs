@@ -1,18 +1,14 @@
 package hsproject.impl;
 
-import hsproject.bean.PurchaseMoneyMtBean;
-import hsproject.bean.UsedMoneyOutDataMtBean;
-import hsproject.dao.ProjectInfoDao;
-import hsproject.util.InsertUtil;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import hsproject.bean.PurchaseMoneyMtBean;
+import hsproject.dao.ProjectInfoDao;
 import weaver.conn.RecordSet;
 import weaver.conn.RecordSetDataSource;
-import weaver.formmode.setup.ModeRightInfo;
 import weaver.general.BaseBean;
 import weaver.general.Util;
 
@@ -170,6 +166,9 @@ public class SysnPurchaseMoneyImpl {
 			String mapsql,String prjid) {
 		RecordSet rs = new RecordSet();
 		RecordSetDataSource rsd = new RecordSetDataSource(dataSourceFlag);
+		if("1001".equals(prjid)) {
+			log.writeLog("updateOrInsertInfo:"+mapsql);
+		}
 		String sql = mapsql;
 		String sql_dt = "";
 		String Wzmc = "";
@@ -190,6 +189,7 @@ public class SysnPurchaseMoneyImpl {
 		}
 		rsd.executeSql(sql);
 		while(rsd.next()){
+			billid = "";
 			Wzmc = Util.null2String(rsd.getString("Wzmc")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
 			ggxh = Util.null2String(rsd.getString("ggxh")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
 			dj = Util.null2String(rsd.getString("dj")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
@@ -200,7 +200,7 @@ public class SysnPurchaseMoneyImpl {
 			sgbh = Util.null2String(rsd.getString("sgbh")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
 			sgid = Util.null2String(rsd.getString("sgid")).replace("'","'||chr(39)||'").replace("&","'||chr(38)||'");
 			sql_dt = "select id from uf_prj_purchaselist where prjid="+prjid+" and Wzmc='"+Wzmc+"' and ggxh='"+ggxh+"' and dj='"+dj+"' and sl='"+sl+"' and zj='"+zj+"' and gysname='"+gysname+"' and htbh='"+htbh+"' and sgbh='"+sgbh+"' and sgid='"+sgid+"'";
-			if("916".equals(prjid)) {
+			if("1001".equals(prjid)) {
 				log.writeLog("aaa "+sql_dt);
 			}
 			rs.executeSql(sql_dt);
@@ -209,10 +209,16 @@ public class SysnPurchaseMoneyImpl {
 			}
 			if("".equals(billid)){
 				sql_dt = "insert into uf_prj_purchaselist(prjid,Wzmc,ggxh,dj,sl,zj,gysname,htbh,issys,sgbh,sgid) values('"+prjid+"','"+Wzmc+"','"+ggxh+"','"+dj+"','"+sl+"','"+zj+"','"+gysname+"','"+htbh+"','0','"+sgbh+"','"+sgid+"')";
+				if("1001".equals(prjid)) {
+					log.writeLog("bbb "+sql_dt);
+				}
 				rs.executeSql(sql_dt);
 			}else{
 				sql_dt = "update uf_prj_purchaselist set issys='"+0+"' where id="+billid;
 				rs.executeSql(sql_dt);
+				if("1001".equals(prjid)) {
+					log.writeLog("ccc "+sql_dt);
+				}
 			}
 		}
 		sql_dt = "delete from uf_prj_purchaselist where issys='1' and prjid="+prjid;
